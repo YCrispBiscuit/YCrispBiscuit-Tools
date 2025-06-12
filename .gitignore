@@ -1,0 +1,34 @@
+# ===== 永远不提交的文件 =====
+# 依赖目录
+node_modules/
+.gradle/
+.mvn/
+
+# 构建产物
+dist/
+target/
+build/
+*.jar
+*.war
+
+# 日志和缓存
+npm-debug.log
+yarn-error.log
+*.log
+.cache/
+.temp/
+.vite/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 敏感数据
+.env
+.env.local
+.env*.local
+
+# ===== 可选提交的文件（按需取消注释） =====
+# !.env.example          # 提交环境变量模板
+# !.idea/codeStyles/     # 提交团队代码风格
+# !.idea/runConfigurations/ # 提交共享运行配置
