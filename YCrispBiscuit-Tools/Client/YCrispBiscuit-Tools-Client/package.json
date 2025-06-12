@@ -6,14 +6,32 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky"
   },
   "dependencies": {
-    "vue": "^3.5.13"
+    "@vueuse/core": "^13.3.0",
+    "axios": "^1.9.0",
+    "dayjs": "^1.11.13",
+    "naive-ui": "^2.41.1",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/node": "^24.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/tsconfig": "^0.7.0",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-vue": "^10.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "prettier": "^3.5.3",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
     "vue-tsc": "^2.2.8"
