@@ -8,7 +8,3 @@ npm install axios    # 请求
 npm install @vueuse/core  # 常用工具函数集合
 npm install dayjs        # 轻量日期库
 npm install naive-ui  # 轻量UI库
-npm install eslint eslint-plugin-vue @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier eslint-config-prettier --save-dev  # 配置eslint和prettier  配置了eslint和prettier，具体配置可以参考文档：https://eslint.org/docs/latest/use/configure/
-npm install husky lint-staged --save-dev  # 提交代码时自动格式化代码
-
-

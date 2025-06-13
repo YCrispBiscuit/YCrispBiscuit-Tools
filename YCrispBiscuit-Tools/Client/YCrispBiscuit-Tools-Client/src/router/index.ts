@@ -1,6 +1,31 @@
 // router/index.ts
-router.beforeEach((to) => {
-  if (to.meta.requiresAuth && !localStorage.getItem('token')) {
-    return { path: '/login', query: { redirect: to.fullPath } }
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
+import Home from '../views/Home.vue'
+import { useAuthStore } from '@/stores/auth'
+
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home,
+    meta: { requiresAuth: true }
+  }
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+})
+
+router.beforeEach((to: RouteLocationNormalized) => {
+  const authStore = useAuthStore()
+  
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return { 
+      path: '/',
+      query: { redirect: to.fullPath !== '/' ? to.fullPath : undefined }
+    }
   }
 })
+
+export default router
