@@ -8,7 +8,7 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   }
 ]
 
@@ -19,9 +19,9 @@ const router = createRouter({
 
 router.beforeEach((to: RouteLocationNormalized) => {
   const authStore = useAuthStore()
-  
+
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return { 
+    return {
       path: '/',
       query: { redirect: to.fullPath !== '/' ? to.fullPath : undefined }
     }
