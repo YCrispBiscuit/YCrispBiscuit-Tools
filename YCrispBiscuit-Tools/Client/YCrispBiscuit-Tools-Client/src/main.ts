@@ -1,7 +1,8 @@
 // main.ts
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import './style.css'
+import './styles/global.scss'
+import './styles/variables.scss'
 import App from './App.vue'
 import router from './router' // 导入路由
 import { createDiscreteApi } from 'naive-ui'

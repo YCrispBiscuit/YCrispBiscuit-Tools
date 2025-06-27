@@ -9,6 +9,18 @@ const routes = [
     name: 'Home',
     component: Home,
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/tools',
+    name: 'Tools',
+    component: () => import('../views/Tools.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('../views/About.vue'),
+    meta: { requiresAuth: false }
   }
 ]
 
