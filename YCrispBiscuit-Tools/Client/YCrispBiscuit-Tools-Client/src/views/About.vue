@@ -2,24 +2,33 @@
   <YCB_Header></YCB_Header>
   <div class="main-content">
     <div class="about-page">
-      <h1>关于本站</h1>
-      <p>个人网站，喜欢什么做什么，随性随兴，代码开源，有事联系。</p>
+      <h1 class="about-page-h1">关于本站</h1>
+      <p>个人网站，喜欢什么做什么，随性随兴，代码开源，有事联系，虽然不一定能及时回就是了。</p>
       <div class="contact-list">
-        <!-- 哔哩哔哩 -->
-        <div class="contact-item" @click="openLink('https://space.bilibili.com/你的UID')">
-          <img src="@/assets/bilibili_blue.svg" alt="bilibili" class="contact-logo" />
-          <span class="contact-name">哔哩哔哩</span>
-        </div>
+
         <!-- GitHub -->
-        <div class="contact-item" @click="openLink('https://github.com/你的GitHub用户名')">
-          <n-icon size="40" class="contact-logo"><FaGithub /></n-icon>
+        <div class="contact-item" @click="openLink('https://github.com/YCrispBiscuit/YCrispBiscuit-Tools')"
+          title="点击跳转至GitHub">
+          <n-icon size="40" class="contact-logo">
+            <Github />
+          </n-icon>
           <span class="contact-name">GitHub</span>
         </div>
         <!-- QQ -->
-        <div class="contact-item" @click="openLink('https://qm.qq.com/cgi-bin/qm/qr?k=你的QQ二维码')">
-          <n-icon size="40" class="contact-logo"><FaQq /></n-icon>
+        <div class="contact-item" @click="openLink('https://qm.qq.com/q/NPGhFM1IMo')" title="点击跳转至QQ">
+          <n-icon size="40" class="contact-logo">
+            <Qq />
+          </n-icon>
           <span class="contact-name">QQ</span>
         </div>
+        <!-- 哔哩哔哩 -->
+        <div class="contact-item" @click="openLink('https://space.bilibili.com/40162073')" title="点击跳转至Bilibili">
+          <n-icon size="40" class="contact-logo">
+            <BilibiliIcon />
+          </n-icon>
+          <span class="contact-name">Bilibili</span>
+        </div>
+
       </div>
     </div>
   </div>
@@ -28,7 +37,9 @@
 <script setup lang="ts">
 import YCB_Header from '@/components/Header';
 import { NIcon } from 'naive-ui'
-import { FaGithub, FaQq } from '@vicons/fa'
+import Github from '@vicons/fa/Github'
+import Qq from '@vicons/fa/Qq'
+import BilibiliIcon from '@/components/BilibiliIcon'
 
 // 跳转外部链接
 function openLink(url: string) {
@@ -49,9 +60,14 @@ function openLink(url: string) {
   text-align: center;
 }
 
+.about-page-h1 {
+  margin-bottom: 16px;
+}
+
+
 .contact-list {
   display: flex;
-  gap: 48px;
+  gap: 96px;
   justify-content: center;
   margin-top: 32px;
 }
@@ -69,7 +85,7 @@ function openLink(url: string) {
 
 .contact-item:active {
   transform: scale(0.92);
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.10);
 }
 
 .contact-logo {

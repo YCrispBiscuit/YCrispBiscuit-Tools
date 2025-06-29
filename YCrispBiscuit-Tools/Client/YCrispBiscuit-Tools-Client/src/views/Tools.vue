@@ -2,7 +2,7 @@
   <YCB_Header></YCB_Header>
   <div class="main-content">
     <div class="tools-page">
-      <h1>工具箱</h1>
+      <h1 class="tools-page-h1">工具箱</h1>
       <p>这里是你的工具箱页面，可以在这里添加和管理各种工具。</p>
     </div>
   </div>
@@ -24,5 +24,9 @@ import YCB_Header from '@/components/Header';
 
 .tools-page {
   text-align: center;
+}
+
+.tools-page-h1 {
+  margin-bottom: 16px;
 }
 </style>
