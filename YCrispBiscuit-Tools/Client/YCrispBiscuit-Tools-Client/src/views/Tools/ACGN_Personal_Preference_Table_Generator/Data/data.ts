@@ -2,6 +2,10 @@
 // 包含第三方API中字段获取和前端转换存储
 
 // ===================== 统一输出字段定义 =====================
+//1.所属表是哪个表，这里应该用表的id来标识
+//2.唯一标识id
+//3.名称
+//4.图片
 export interface PreferenceTableItem {
   /** 所属表id */
   tableId: string;
@@ -13,13 +17,6 @@ export interface PreferenceTableItem {
   image: string;
 }
 
-//统一输出字段定义
-//所用字段有：
-//1.所属表是哪个表，这里应该用表的id来标识
-//2.唯一标识id
-//3.名称
-//4.图片
-
 
 
 //各表字段获取+转换
@@ -27,8 +24,10 @@ export interface PreferenceTableItem {
 
 
 
-// 表一：原神Genshin_Impact
 
+
+
+// 表一：原神Genshin_Impact
 /**
  * 原神API返回的角色数据list转换为统一输出字段
  * @param apiList 原神API返回的data.list[0].list
@@ -41,9 +40,6 @@ export function convertGenshinApiList(apiList: any[]): PreferenceTableItem[] {
     image: item.icon,
   }));
 }
-
-// ===================== 原神角色API前端爬取与转换 =====================
-
 /**
  * 纯前端获取原神角色数据
  * 返回统一输出字段数组
@@ -67,8 +63,6 @@ export async function fetchAndConvertGenshinCharacters(): Promise<PreferenceTabl
   console.log('转换后的统一输出字段', converted);
   return converted;
 }
-
-// ===================== 原神角色类型定义 =====================
 /**
  * 原神个人喜好表类型（可自定义扩展）
  */
@@ -83,23 +77,11 @@ export const genshinPreferenceTypes = [
   '最可爱的',
   '最帅的',
   '最治愈的',
-  '最烂的',
-  '最喜欢的武器',
-  '最喜欢的武器图标',
-  '最喜欢的武器图标url',
-  '最喜欢的武器攻击力',
-  '最喜欢的武器攻击力（数值）',
-  '最喜欢的武器攻击力（百分比）',
-  '最喜欢的武器防御力',
-  '最喜欢的武器防御力（数值）',
-  '最喜欢的武器防御力（百分比）',
-  '最喜欢的武器暴击率',
-  '最喜欢的武器暴击率（数值）',
-  '最喜欢的武器暴击率（百分比）',
-  '最喜欢的武器暴击伤害',
-  '最喜欢的武器暴击伤害（数值）',
-  '最喜欢的武器暴击伤害（百分比）',
-  '最喜欢的武器元素精通',
+  '最高冷的',
+  '最热情的',
+  '最风雅的',
+  '想看ta性转的',
+  '想变成ta的',
 
   // ...可继续扩展
 ];

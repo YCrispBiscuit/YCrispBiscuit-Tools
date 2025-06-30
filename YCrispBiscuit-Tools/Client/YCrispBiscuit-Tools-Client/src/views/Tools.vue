@@ -3,7 +3,7 @@
   <div class="main-content">
     <div class="tools-page">
       <h1 class="tools-page-h1">工具箱</h1>
-      <p>这里是你的工具箱页面，可以在这里添加和管理各种工具。</p>
+      <p>什么？你问为什么这么多容器但只有一个工具能用？因为我懒啊</p>
     </div>
   </div>
   <!-- 工具列表区域，初始在页面下方，需要下滑才能看到 -->

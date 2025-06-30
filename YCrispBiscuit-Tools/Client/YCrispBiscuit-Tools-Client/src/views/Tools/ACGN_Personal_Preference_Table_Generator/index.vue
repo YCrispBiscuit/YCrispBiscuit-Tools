@@ -26,7 +26,7 @@
                 <n-grid-item v-for="(cell, idx) in gridData" :key="cell.type">
                   <n-card class="character-card" hoverable @click="openDialog(idx)">
                     <div class="cell-type">{{ cell.type }}</div>
-                    <img v-if="cell.character" :src="cell.character.image" class="character-img" />
+                    <img v-if="cell.character" :src="cell.character.image" class="character-img" crossorigin="anonymous" />
                     <div v-else class="character-placeholder">点击选择</div>
                   </n-card>
                 </n-grid-item>
@@ -50,7 +50,7 @@
             style="width: 240px; margin: 16px 0;"
           />
           <div v-if="selectedCharacter">
-            <img :src="selectedCharacter.image" class="dialog-img" />
+            <img :src="selectedCharacter.image" class="dialog-img" crossorigin="anonymous" />
           </div>
         </div>
         <template #action>
@@ -67,6 +67,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { NButton, NSelect, NGrid, NGridItem, NCard, NModal, NSpin, useMessage, NMessageProvider } from 'naive-ui'
 import { fetchAndConvertGenshinCharacters, type PreferenceTableItem, getDefaultGenshinPreferenceGrid, type GenshinPreferenceCell } from './Data/data'
+const bgGenshinLeft = '/Tools/ACGN_Personal_Preference_Table_Generator/Genshin_Impact/心海.png'
+const bgGenshinRight = '/Tools/ACGN_Personal_Preference_Table_Generator/Genshin_Impact/芙宁娜.png'
 
 const router = useRouter()
 const message = useMessage()
@@ -84,10 +86,16 @@ const tableOptions = [
 const selectedTable = ref('genshin_impact')
 
 // 动态背景图路径（可根据表类型扩展）
-const bgMap = {
+interface BgMapType {
+  [key: string]: {
+    left: string
+    right: string
+  }
+}
+const bgMap: BgMapType = {
   genshin_impact: {
-    left: '/assets/genshin_left.png',
-    right: '/assets/genshin_right.png',
+    left: bgGenshinLeft,
+    right: bgGenshinRight,
   },
   // 其他表类型可继续扩展
 }
@@ -140,13 +148,26 @@ function confirmSelect() {
   }
 }
 
-// 保存PNG（简单实现，依赖html2canvas）
+// 等待所有图片加载完毕
+async function waitAllImagesLoaded(container: HTMLElement) {
+  const imgs = Array.from(container.querySelectorAll('img'));
+  await Promise.all(imgs.map(img => {
+    if ((img as HTMLImageElement).complete) return Promise.resolve();
+    return new Promise(res => {
+      img.onload = img.onerror = res;
+    });
+  }));
+}
+
+// 保存PNG（仅导出PNG，确保图片加载完毕）
 async function saveAsPng() {
   try {
+    // 1. 导出合成表格PNG
     const el = document.querySelector('.table-container') as HTMLElement
     if (!el) return
+    await waitAllImagesLoaded(el)
     const html2canvas = (await import('html2canvas')).default
-    const canvas = await html2canvas(el)
+    const canvas = await html2canvas(el, { useCORS: true })
     const link = document.createElement('a')
     link.download = 'preference-table.png'
     link.href = canvas.toDataURL('image/png')
@@ -166,15 +187,15 @@ async function saveAsPng() {
   overflow: hidden;
 }
 .bg-decor {
-  position: absolute;
+  position: fixed;
   top: 50%;
-  width: 260px;
+  width: 360px;
   height: auto;
-  max-height: 70vh;
-  opacity: 0.18;
+  
+  opacity: 0.28;
   pointer-events: none;
   user-select: none;
-  z-index: 1;
+  z-index: 10;
   transform: translateY(-50%);
 }
 .bg-decor-left {
