@@ -45,8 +45,8 @@ const appStore = useAppStore()
 // 顶部导航栏菜单配置，包含三个页面
 const menuOptions = [
     { label: '主页', key: '/' }, // 首页
-    { label: '工具', key: '/tools' }, // 工具页
-    { label: '关于', key: '/about' } // 关于页
+    { label: '工具', key: '/Tools' }, // 工具页
+    { label: '关于', key: '/About' } // 关于页
 ]
 
 // 当前激活的菜单项，初始为当前路由路径

@@ -1,6 +1,5 @@
 <template>
     <YCB_Header></YCB_Header>
-
 </template>
 
 <script setup lang="ts">

@@ -11,19 +11,24 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
-    path: '/tools',
+    path: '/Tools',
     name: 'Tools',
     component: () => import('../views/Tools.vue'),
     meta: { requiresAuth: false }
   },
   {
-    path: '/about',
+    path: '/About',
     name: 'About',
     component: () => import('../views/About.vue'),
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/Tools/ACGN_Personal_Preference_Table_Generator',
+    name: 'ACGN_Personal_Preference_Table_Generator',
+    component: () => import('../views/Tools/ACGN_Personal_Preference_Table_Generator'),
+    meta: { requiresAuth: false }
   }
 ]
-
 const router = createRouter({
   history: createWebHistory(),
   routes
