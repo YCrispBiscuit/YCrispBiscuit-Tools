@@ -32,3 +32,30 @@ Thumbs.db
 # !.env.example          # 提交环境变量模板
 # !.idea/codeStyles/     # 提交团队代码风格
 # !.idea/runConfigurations/ # 提交共享运行配置
+
+
+
+
+
+# ===== Python & FastAPI Backend =====
+# 虚拟环境 (Virtual Environment)
+# 包含所有Python包，应在每台机器上根据 requirements.txt 重新创建
+venv/
+env/
+.venv/
+
+# Python 缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Python 打包和分发产物
+*.egg-info/
+sdist/
+*.spec
+
+# 测试产物
+.pytest_cache/
+.coverage
+htmlcov/
