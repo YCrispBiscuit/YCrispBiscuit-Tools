@@ -1,5 +1,5 @@
 """
-Authentication endpoints
+用户认证相关接口，包括登录和注册
 """
 
 from datetime import timedelta
@@ -13,6 +13,7 @@ from app.core import security
 from app.dependencies import get_db
 from app.repository import user as user_repo
 
+# 创建 APIRouter 实例，用于注册认证相关路由
 router = APIRouter()
 
 @router.post("/token", response_model=schemas.token.Token)
@@ -21,7 +22,12 @@ def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends()
 ):
     """
-    OAuth2 compatible token login, get an access token for future requests
+    用户登录，获取访问令牌（JWT）。
+
+    - **db**: 数据库会话
+    - **form_data**: 登录表单数据（用户名、密码）
+
+    返回：access_token 和 token_type
     """
     user = user_repo.get_user_by_username(db, username=form_data.username)
     if not user or not security.verify_password(form_data.password, user.hashed_password):
@@ -41,7 +47,12 @@ def register_user(
     user_in: schemas.user.UserCreate
 ):
     """
-    Create new user.
+    用户注册接口。
+
+    - **db**: 数据库会话
+    - **user_in**: 用户注册信息（用户名、密码、邮箱等）
+
+    返回：新注册的用户信息
     """
     user = user_repo.get_user_by_username(db, username=user_in.username)
     if user:
