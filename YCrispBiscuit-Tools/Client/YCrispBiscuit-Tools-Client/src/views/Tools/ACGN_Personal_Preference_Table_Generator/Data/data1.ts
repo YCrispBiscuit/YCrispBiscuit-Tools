@@ -47,7 +47,7 @@ export function convertGenshinApiList(apiList: any[]): PreferenceTableItem[] {
  */
 export async function fetchAndConvertGenshinCharacters(): Promise<PreferenceTableItem[]> {
   const res = await fetch(
-    'https://act-api-takumi-static.mihoyo.com/common/blackboard/ys_obc/v1/home/content/list?app_sn=ys_obc&channel_id=34',
+    'https://act-api-takumi-static.mihoyo.com/common/blackboard/ys_obc/v1/home/content/list?app_sn=ys_obc&channel_id=25',
     {
       headers: {
         'accept': 'application/json, text/plain, */*',

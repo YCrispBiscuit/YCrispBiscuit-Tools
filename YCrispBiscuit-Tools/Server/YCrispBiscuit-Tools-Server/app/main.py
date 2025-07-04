@@ -1,13 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import auth, user
-
+from app.api.routes import ACGN_Personal_Preference_Table_Generator
 app = FastAPI()
 
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # 允许的前端源
+    # allow_origins=["http://localhost:5173"],  # 允许的前端源
+     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -16,6 +17,8 @@ app.add_middleware(
 # API Routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(user.router, prefix="/user", tags=["user"])
+app.include_router(ACGN_Personal_Preference_Table_Generator.router)
+
 
 @app.get("/")
 def read_root():
