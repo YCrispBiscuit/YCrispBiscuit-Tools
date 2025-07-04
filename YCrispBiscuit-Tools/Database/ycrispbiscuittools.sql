@@ -11,7 +11,7 @@
  Target Server Version : 80042 (8.0.42)
  File Encoding         : 65001
 
- Date: 03/07/2025 17:44:29
+ Date: 04/07/2025 18:19:34
 */
 
 SET NAMES utf8mb4;
@@ -32,6 +32,7 @@ CREATE TABLE `acgn_personal_preference_table_generator`  (
 -- ----------------------------
 -- Records of acgn_personal_preference_table_generator
 -- ----------------------------
+INSERT INTO `acgn_personal_preference_table_generator` VALUES (1, 'Genshin Impact', NULL, 0);
 
 -- ----------------------------
 -- Table structure for data_source_acgn_personal_preference_table_generator
@@ -46,7 +47,7 @@ CREATE TABLE `data_source_acgn_personal_preference_table_generator`  (
   PRIMARY KEY (`Data_Source_ACGN_Personal_Preference_Table_Generator_ID`) USING BTREE,
   INDEX `key1`(`ACGN_Personal_Preference_Table_Generator_ID` ASC) USING BTREE,
   CONSTRAINT `key1` FOREIGN KEY (`ACGN_Personal_Preference_Table_Generator_ID`) REFERENCES `acgn_personal_preference_table_generator` (`ACGN_Personal_Preference_Table_Generator_ID`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of data_source_acgn_personal_preference_table_generator
@@ -65,7 +66,7 @@ CREATE TABLE `user`  (
   `CreateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `LastUpDateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
   PRIMARY KEY (`UserID`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of user
