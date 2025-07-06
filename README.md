@@ -96,7 +96,7 @@ YCrispBiscuit-Tools/
 └── 📁 Server/
     └── YCrispBiscuit-Tools-Server/   # FastAPI 后端项目
         ├── app/                      # 应用代码
-		├── resources/                # 图片资源
+        ├── resources/                # 图片资源
         └── requirements.txt          # Python 依赖
 
 ```
