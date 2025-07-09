@@ -46,7 +46,7 @@ const appStore = useAppStore()
 const menuOptions = [
     { label: '主页', key: '/' }, // 首页
     { label: '工具', key: '/Tools' }, // 工具页
-    { label: '文档', key: '/Documentation' },// 文档页
+    { label: '文档', key: '/Documentations' },// 文档页
     { label: '关于', key: '/About' }, // 关于页
 ]
 

@@ -22,6 +22,13 @@ const routes = [
     component: () => import('../views/About.vue'),
     meta: { requiresAuth: false }
   },
+   {
+    path: '/Documentations',
+    name: 'Documentations',
+    component: () => import('../views/Documentations.vue'),
+    meta: { requiresAuth: false }
+  },
+
   {
     path: '/Tools/ACGN_Personal_Preference_Table_Generator',
     name: 'ACGN_Personal_Preference_Table_Generator',
