@@ -82,7 +82,12 @@ export async function fetchPreferenceTableItems(tableId: number): Promise<Prefer
     tableId: item.ACGN_Personal_Preference_Table_Generator_ID,
     id: item.Item_ID,
     name: item.Item_Name,
-    image: item.Item_Picture ? IMAGE_BASE_URL + item.Item_Picture.replace(/^resources[\\\/]/, '') : '',
+    image: item.Item_Picture
+      ? IMAGE_BASE_URL + item.Item_Picture.replace(
+        /^resources[\\\/]?/, // 匹配开头的 resources/ 或 resources\
+        'ACGN_Personal_Preference_Table_Generator/'
+      )
+      : '',
   }))
 }
 
