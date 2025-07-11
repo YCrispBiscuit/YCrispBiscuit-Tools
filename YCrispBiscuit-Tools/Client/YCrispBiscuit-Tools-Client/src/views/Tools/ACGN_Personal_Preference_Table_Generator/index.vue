@@ -118,6 +118,10 @@ const bgMap: Record<number, { left: string, right: string }> = {
   3: {
     left: '/Tools/ACGN_Personal_Preference_Table_Generator/薇薇安.png',
     right: '/Tools/ACGN_Personal_Preference_Table_Generator/浮波柚叶.png',
+  },
+  4: {
+    left: '/Tools/ACGN_Personal_Preference_Table_Generator/长离.png',
+    right: '/Tools/ACGN_Personal_Preference_Table_Generator/坎特蕾拉.png',
   }
   // 可扩展其他表类型
 }
@@ -296,7 +300,7 @@ function goBack() {
 .bg-decor {
   position: fixed;
   top: 50%;
-  width: 360px;
+  width: 480px;
   height: auto;
 
   opacity: 0.28;

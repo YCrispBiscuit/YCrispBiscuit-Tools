@@ -7,30 +7,66 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   font-family: '微软雅黑', 'Microsoft YaHei', Arial, sans-serif;
   font-size: var(--font-size-base);
   color: var(--text-color);
   background-color: var(--bg-color);
-  transition: 
+  transition:
     color var(--transition-duration) var(--transition-timing),
     background-color var(--transition-duration) var(--transition-timing);
   line-height: 1.5;
   min-height: 100vh;
+
+
+
+  height: 100%;
+  /* 允许滚动，但隐藏滚动条 */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE 10+ */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari */
 }
 
 // 常用工具类
-.mt-sm { margin-top: var(--space-sm) !important; }
-.mb-sm { margin-bottom: var(--space-sm) !important; }
-.p-md { padding: var(--space-md) !important; }
+.mt-sm {
+  margin-top: var(--space-sm) !important;
+}
 
-.text-primary { color: var(--color-primary) !important; }
-.text-secondary { color: var(--text-color-secondary) !important; }
+.mb-sm {
+  margin-bottom: var(--space-sm) !important;
+}
 
-.bg-secondary { background-color: var(--bg-color-secondary) !important; }
+.p-md {
+  padding: var(--space-md) !important;
+}
 
-.rounded { border-radius: var(--border-radius-md) !important; }
-.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; }
+.text-primary {
+  color: var(--color-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-color-secondary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bg-color-secondary) !important;
+}
+
+.rounded {
+  border-radius: var(--border-radius-md) !important;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
 
 .flex-center {
   display: flex;
@@ -40,7 +76,7 @@ html, body {
 
 // 主题切换动画
 .theme-transition * {
-  transition: 
+  transition:
     color var(--transition-duration) var(--transition-timing),
     background-color var(--transition-duration) var(--transition-timing),
     border-color var(--transition-duration) var(--transition-timing);

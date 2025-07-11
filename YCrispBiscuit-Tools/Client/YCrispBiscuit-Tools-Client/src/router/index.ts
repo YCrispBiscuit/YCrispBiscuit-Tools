@@ -34,6 +34,12 @@ const routes = [
     name: 'ACGN_Personal_Preference_Table_Generator',
     component: () => import('../views/Tools/ACGN_Personal_Preference_Table_Generator'),
     meta: { requiresAuth: false }
+  },
+{
+    path: '/Documentations/index',
+    name: 'DocumentationsIndex',
+    component: () => import('../views/Documentations/index.vue'),
+    meta: { requiresAuth: false }
   }
 ]
 const router = createRouter({

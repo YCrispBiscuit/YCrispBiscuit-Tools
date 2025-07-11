@@ -68,6 +68,7 @@ export async function fetchAllPreferenceTables(): Promise<PreferenceTable[]> {
  * @returns Promise<PreferenceTableItem[]>
  */
 export async function fetchPreferenceTableItems(tableId: number): Promise<PreferenceTableItem[]> {
+  console.log('fetchPreferenceTableItems tableId返回：', tableId)
   const res = await request.get(`/api/Data_Source_ACGN_Personal_Preference_Table_Generator/${tableId}`)
   console.log('fetchPreferenceTableItems 返回：', res)
   const arr = Array.isArray(res) ? res : res?.data
@@ -85,7 +86,7 @@ export async function fetchPreferenceTableItems(tableId: number): Promise<Prefer
     image: item.Item_Picture
       ? IMAGE_BASE_URL + item.Item_Picture.replace(
         /^resources[\\\/]?/, // 匹配开头的 resources/ 或 resources\
-        'ACGN_Personal_Preference_Table_Generator/'
+        ''
       )
       : '',
   }))
@@ -98,7 +99,9 @@ export async function fetchPreferenceTableItems(tableId: number): Promise<Prefer
  * @returns Promise<{ success: boolean, message: string }>
  */
 export async function fetchDataSourceByGeneratorId(tableId: number): Promise<{ success: boolean, message: string }> {
+  console.log('fetchDataSourceByGeneratorId tableId返回：', tableId)
   const res = await request.post(`/api/Data_Source_ACGN_Personal_Preference_Table_Generator/fetch/${tableId}`)
+  console.log('fetchDataSourceByGeneratorId 返回：', res)
   return res as unknown as { success: boolean, message: string }
 }
 

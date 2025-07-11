@@ -109,8 +109,6 @@ function goTo(path: string) {
     /* 让伪元素绝对定位于此容器内 */
     overflow: hidden;
     /* 防止伪元素溢出容器 */
-
-
 }
 
 .Docus-body::before {
