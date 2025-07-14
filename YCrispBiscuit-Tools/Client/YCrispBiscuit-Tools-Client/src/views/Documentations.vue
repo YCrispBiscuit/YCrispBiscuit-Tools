@@ -10,18 +10,18 @@
         </div>
 
         <div class="doc-list-wrapper" ref="docListRef">
-            <n-card v-for="(item, idx) in docList" :key="item.key" hoverable class="doc-big-card"
+            <n-card v-for="(item, idx) in docList" :key="item.Documentations_Key" hoverable class="doc-big-card"
                 :class="{ 'slide-in': itemVisible[idx] }">
                 <div class="doc-card-header">
-                    <n-avatar :src="item.icon" size="large" class="doc-avatar" />
-                    <div class="doc-card-title">{{ item.title }}</div>
+                    <n-avatar :src="item.logo" size="large" class="doc-avatar" />
+                    <div class="doc-card-title">{{ item.Documentations_Title }}</div>
                 </div>
-                <div class="doc-card-desc">{{ item.desc }}</div>
-                <ul v-if="item.details && item.details.length" class="doc-card-detail-list">
-                    <li v-for="(d, i) in item.details" :key="i">{{ d }}</li>
+                <div class="doc-card-desc">{{ item.Documentations_Desc }}</div>
+                <ul v-if="item.Documentations_Details" class="doc-card-detail-list">
+                    <li>{{ item.Documentations_Details }}</li>
                 </ul>
                 <div class="doc-card-footer">
-                    <n-button type="primary" @click="goTo(item.path)">进入文档</n-button>
+                    <n-button type="primary" @click="action(item)">进入文档</n-button>
                 </div>
             </n-card>
         </div>
@@ -33,73 +33,42 @@ import YCB_Header from '@/components/Header';
 import { NCard, NAvatar, NButton } from 'naive-ui';
 import { useRouter } from 'vue-router';
 import { ref, onMounted, nextTick } from 'vue';
+import { getDocumentationsList } from './Documentations/Data/Data.ts';
 
 const router = useRouter();
 const docListRef = ref<HTMLElement | null>(null);
-
-const docList = [
-    {
-        key: 'acgn',
-        title: 'ACGN 工具文档',
-        desc: '收录所有ACGN相关工具的使用说明、功能介绍、常见问题等，适合二次元爱好者快速上手。',
-        icon: '/public/logo.svg',
-        path: '/docs/acgn',
-        details: [
-            ' 偏好表生成器文档',
-            ' 角色数据库说明',
-            ' 图片导出与自定义技巧',
-        ],
-    },
-    {
-        key: 'dev',
-        title: '编程工具文档',
-        desc: '涵盖开发辅助工具、API文档、技术细节说明，适合开发者查阅和学习。',
-        icon: '/src/assets/bilibili_blue.png',
-        path: '/docs/dev',
-        details: [
-            ' 代码格式化工具文档',
-            ' API接口说明',
-            ' 常见开发问题解答',
-        ],
-    },
-    {
-        key: 'life',
-        title: '生活工具文档',
-        desc: '介绍日常生活相关工具的使用方法、场景案例，帮助你高效生活。',
-        icon: '/src/assets/bilibili_red.png',
-        path: '/docs/life',
-        details: [
-            ' 记账工具文档',
-            ' 日程管理说明',
-            ' 生活小技巧',
-        ],
-    },
-];
-
-// 控制每个卡片的显示动画
-const itemVisible = ref(Array(docList.length).fill(false));
+const docList = ref<any[]>([]);
+const itemVisible = ref<any[]>([]);
 
 onMounted(() => {
-    nextTick(() => {
-        if (!docListRef.value) return;
-        const observer = new window.IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting) {
-                itemVisible.value = Array(docList.length).fill(false);
-                docList.forEach((_, idx) => {
-                    setTimeout(() => {
-                        itemVisible.value[idx] = true;
-                    }, idx * 240);
-                });
-            } else {
-                itemVisible.value = Array(docList.length).fill(false);
-            }
-        }, { threshold: 0.1 });
-        observer.observe(docListRef.value);
+    getDocumentationsList().then((list) => {
+        console.log('后端分区数据:', list);
+        docList.value = list;
+        itemVisible.value = Array(docList.value.length).fill(false);
+        nextTick(() => {
+            if (!docListRef.value) return;
+            const observer = new window.IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    itemVisible.value = Array(docList.value.length).fill(false);
+                    docList.value.forEach((_, idx) => {
+                        setTimeout(() => {
+                            itemVisible.value[idx] = true;
+                        }, idx * 240);
+                    });
+                } else {
+                    itemVisible.value = Array(docList.value.length).fill(false);
+                }
+            }, { threshold: 0.1 });
+            observer.observe(docListRef.value);
+        });
     });
 });
 
-function goTo(path: string) {
-    router.push(path);
+function action(item: any) {
+    router.push({
+        path: '/Documentations/index',
+        query: { category: item.Documentations_Key }
+    });
 }
 </script>
 

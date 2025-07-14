@@ -1,46 +1,59 @@
 <template>
-  <div class="docu-layout">
-    <!-- 左侧：分类标题+文档列表 -->
-    <aside class="docu-sidebar">
-      <div class="sidebar-header">
-        <h2 class="sidebar-title">{{ categoryTitle }}</h2>
+  <div class="ycb-docu-layout">
+    <!-- 左侧分区卡片 -->
+    <aside class="ycb-sidebar-group">
+      <div class="ycb-sidebar-title-card">
+        <div class="ycb-sidebar-title">{{ categoryTitle }}</div>
       </div>
-      <div class="sidebar-list">
-        <n-menu
-          :options="docMenuOptions"
-          :value="activeDocKey"
-          @update:value="handleDocChange"
-          class="doc-menu"
-        />
+      <div class="ycb-doc-list-card">
+        <div class="ycb-doc-list">
+          <div v-for="(doc, idx) in docMenuOptions" :key="doc.key" @click="handleDocChange(doc.key)"
+            :class="['ycb-doc-list-item', { 'active': doc.key === activeDocKey }]">
+            <span>{{ doc.label }}</span>
+            <div v-if="idx < docMenuOptions.length - 1" class="ycb-doc-list-divider"></div>
+          </div>
+        </div>
       </div>
     </aside>
-
-    <!-- 右侧：顶部导航栏+主内容区 -->
-    <main class="docu-main">
-      <!-- 顶部导航栏（预留位置） -->
-      <div class="docu-navbar">
-        <!-- 这里留空，供你自定义导航栏内容（如返回主页、黑白切换按钮等） -->
+    <!-- 右侧区域 -->
+    <main class="ycb-main-card">
+      <!-- 顶部导航栏卡片 -->
+      <div class="ycb-navbar-card">
+        <div class="ycb-navbar-left">{{ activeDocLabel }}</div>
+        <div class="ycb-navbar-right">
+          <n-button quaternary @click="goBack">返回文档主页</n-button>
+          <n-button quaternary @click="toggleTheme" style="margin-left: 12px;">
+            <n-icon size="20">
+              <template v-if="isDark"> <moon-outline /> </template>
+              <template v-else> <sunny-outline /> </template>
+            </n-icon>
+            <span style="margin-left: 6px;">{{ isDark ? '暗色' : '亮色' }}</span>
+          </n-button>
+        </div>
       </div>
-      <div class="docu-content-wrapper">
-        <!-- 主内容区左：文档内容 -->
-        <section class="docu-content">
-          <div v-if="docContent" class="docu-md" v-html="docContent"></div>
+      <!-- 下方内容区 -->
+      <div class="ycb-content-row">
+        <!-- 左下：正文卡片 -->
+        <section class="ycb-content-card">
+          <!-- 正文区域，先空着 -->
         </section>
-        <!-- 主内容区右：目录+自定义链接区 -->
-        <aside class="docu-toc">
-          <div class="toc-title">目录</div>
-          <ul class="toc-list">
-            <li v-for="item in tocList" :key="item.id">
-              <a :href="`#${item.id}`">{{ item.text }}</a>
-            </li>
-          </ul>
-          <div class="toc-links">
-            <div class="toc-links-title">相关链接</div>
-            <ul>
-              <li v-for="link in customLinks" :key="link.url">
+        <!-- 右下：目录+链接卡片 -->
+        <aside class="ycb-toc-link-card">
+          <div class="ycb-toc-card">
+            <div class="ycb-toc-title">目录</div>
+            <n-list bordered class="ycb-toc-list">
+              <n-list-item v-for="item in tocList" :key="item.id" class="ycb-toc-list-item">
+                <a :href="`#${item.id}`">{{ item.text }}</a>
+              </n-list-item>
+            </n-list>
+          </div>
+          <div class="ycb-link-card">
+            <div class="ycb-link-title">相关链接</div>
+            <n-list bordered class="ycb-link-list">
+              <n-list-item v-for="link in customLinks" :key="link.url" class="ycb-link-list-item">
                 <a :href="link.url" target="_blank">{{ link.text }}</a>
-              </li>
-            </ul>
+              </n-list-item>
+            </n-list>
           </div>
         </aside>
       </div>
@@ -50,195 +63,259 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { NMenu } from 'naive-ui';
-//import { getCategoryDocs, getDocContent, getDocToc, getCustomLinks } from './Data/Data';
+import { useRouter, useRoute } from 'vue-router';
+import { NList, NListItem, NButton, NIcon } from 'naive-ui';
+import { SunnyOutline as sunnyOutline, MoonOutline as moonOutline } from '@vicons/ionicons5';
+import { useAppStore } from '@/stores/app';
+import { getDocumentationsList, getCategoryDocs } from './Data/Data';
 
-// 当前分类标题（可由路由或父页面传入）
-const categoryTitle = ref('ACGN 工具文档');
-
-// 文档列表与选中项
-const docMenuOptions = ref([]);
+const appStore = useAppStore();
+const router = useRouter();
+const route = useRoute();
+const categoryKey = ref(route.query.category as string || '');
+const categoryTitle = ref('');
+const docMenuOptions = ref<{ label: string, key: string }[]>([]);
 const activeDocKey = ref('');
 
-// 文档内容、目录、链接
-const docContent = ref('');
-const tocList = ref([]);
-const customLinks = ref([]);
+const activeDocLabel = computed(() => {
+  const doc = docMenuOptions.value.find(d => d.key === activeDocKey.value);
+  return doc ? doc.label : '';
+});
 
-// 加载文档列表
+const tocList = ref<{ id: string, text: string }[]>([]); // TODO: 替换为正文解析目录
+const customLinks = ref<{ url: string, text: string }[]>([]); // TODO: 替换为正文解析相关链接
+const isDark = computed(() => appStore.isDark);
+
 onMounted(async () => {
-  const docs = await getCategoryDocs(categoryTitle.value);
-  docMenuOptions.value = docs.map(doc => ({
-    label: doc.title,
-    key: doc.key
-  }));
+  // 获取所有分区数据
+  const partitions = await getDocumentationsList();
+  const partition = partitions.find(p => p.Documentations_Key === categoryKey.value);
+  categoryTitle.value = partition ? partition.Documentations_Title : '';
+  // 加载分区下所有 md 文档列表
+  const docs = await getCategoryDocs(categoryKey.value);
+  docMenuOptions.value = docs.map(doc => ({ label: doc.label, key: doc.key }));
   if (docs.length) {
     activeDocKey.value = docs[0].key;
-    await loadDoc(activeDocKey.value);
   }
 });
 
-// 切换文档
-async function handleDocChange(key: string) {
-  activeDocKey.value = key;
-  await loadDoc(key);
+function goBack() {
+  router.push('/Documentations');
 }
 
-// 加载文档内容、目录、链接
-async function loadDoc(key: string) {
-  docContent.value = await getDocContent(key);
-  tocList.value = await getDocToc(docContent.value);
-  customLinks.value = await getCustomLinks(key);
+function toggleTheme() {
+  appStore.toggleTheme();
 }
+
+function handleDocChange(key: string) {
+  activeDocKey.value = key;
+}
+
 </script>
 
 <style scoped>
-.docu-layout {
+.ycb-docu-layout {
   display: flex;
-  min-height: 100vh;
+  gap: 32px;
+  padding: 32px;
   background: var(--bg-color);
-}
-.docu-sidebar {
-  width: 260px;
-  background: var(--bg-color-secondary);
-  border-right: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
   min-height: 100vh;
+  box-sizing: border-box;
+  transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
 }
-.sidebar-header {
-  padding: 32px 0 16px 0;
-  text-align: center;
-  background: inherit;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-.sidebar-title {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: var(--text-color);
-}
-.sidebar-list {
-  flex: 1;
-  padding: 0 0 24px 0;
-  overflow-y: auto;
-}
-.doc-menu {
-  background: transparent;
-}
-.docu-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.docu-navbar {
-  height: 56px;
-  background: transparent;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  padding: 0 32px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-.docu-content-wrapper {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-}
-.docu-content {
-  flex: 1.5;
-  padding: 32px 32px 32px 0;
-  min-width: 0;
-  overflow-x: auto;
-}
-.docu-md {
-  background: var(--bg-color-secondary);
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 12px 0 rgba(64,158,255,0.06);
-  color: var(--text-color);
-  word-break: break-word;
-}
-.docu-toc {
-  width: 260px;
-  padding: 32px 16px 32px 0;
-  border-left: 1px solid var(--border-color);
-  background: var(--bg-color-secondary);
-  position: sticky;
-  top: 56px;
-  min-height: calc(100vh - 56px);
+
+/* 左侧分区卡片分组 */
+.ycb-sidebar-group {
+  width: 280px;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
-.toc-title {
-  font-size: 1.1rem;
+
+/* 左上title卡片 */
+.ycb-sidebar-title-card {
+  background: var(--bg-color-secondary);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  padding: 28px 20px;
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+  transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
+}
+
+.ycb-sidebar-title {
+  font-size: 1.5rem;
   font-weight: bold;
-  margin-bottom: 12px;
   color: var(--text-color);
+  transition: color 0.3s;
 }
-.toc-list {
-  list-style: none;
+
+/* 左下文档列表卡片 */
+.ycb-doc-list-card {
+  background: var(--bg-color-secondary);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+  transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
+}
+
+.ycb-doc-list {
+  background: transparent;
+  border-radius: 14px;
   padding: 0;
-  margin: 0 0 16px 0;
 }
-.toc-list li {
-  margin-bottom: 8px;
+
+.ycb-doc-list-item {
+  font-size: 1.08rem;
+  color: var(--text-color);
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* 让横线始终在底部 */
+  flex-direction: row;
 }
-.toc-list a {
+
+.ycb-doc-list-item.active {
+  background: var(--primary-color);
+  color: #00f1bd;
+}
+
+.ycb-doc-list-divider {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 0;
+  height: 1px;
+  background: var(--divider-color, #e5e5e5);
+  z-index: 1;
+}
+
+.ycb-main-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
+}
+
+.ycb-navbar-card {
+  background: var(--bg-color-secondary);
+  border-radius: 18px;
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 60px;
+  margin-bottom: 0;
+  transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
+}
+
+.ycb-navbar-left {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--text-color);
+  transition: color 0.3s;
+}
+
+.ycb-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ycb-content-row {
+  display: flex;
+  gap: 32px;
+}
+
+.ycb-content-card {
+  flex: 2;
+  background: var(--bg-color-secondary);
+  border-radius: 18px;
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  padding: 32px 32px 32px 32px;
+  min-height: 320px;
+  transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
+}
+
+.ycb-toc-link-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ycb-toc-card,
+.ycb-link-card {
+  background: var(--bg-color-secondary);
+  border-radius: 18px;
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  padding: 24px 18px;
+  transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
+}
+
+.ycb-toc-title,
+.ycb-link-title {
+  font-size: 1.08rem;
+  font-weight: bold;
+  color: var(--text-color);
+  margin-bottom: 14px;
+  transition: color var(--transition-duration) var(--transition-timing);
+}
+
+.ycb-toc-list,
+.ycb-link-list {
+  background: transparent;
+  border-radius: 10px;
+  padding: 0;
+}
+
+.ycb-toc-list-item,
+.ycb-link-list-item {
+  font-size: 0.98rem;
+  color: var(--text-color);
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 5px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.ycb-toc-list-item a,
+.ycb-link-list-item a {
   color: var(--primary-color);
   text-decoration: none;
-  font-size: 0.98rem;
+  transition: color 0.3s;
 }
-.toc-links-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--text-color-secondary);
-}
-.toc-links ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.toc-links li {
-  margin-bottom: 6px;
-}
-.toc-links a {
-  color: var(--primary-color);
-  text-decoration: underline;
-  font-size: 0.95rem;
-}
+
 @media (max-width: 900px) {
-  .docu-layout {
+  .ycb-docu-layout {
     flex-direction: column;
+    gap: 18px;
+    padding: 18px;
   }
-  .docu-sidebar {
-    width: 100vw;
+
+  .ycb-sidebar-card {
+    width: 100%;
     min-height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-    position: static;
+    border-radius: 16px;
+    padding: 18px 10px;
   }
-  .docu-main {
+
+  .ycb-main-card {
+    gap: 18px;
+  }
+
+  .ycb-content-row {
     flex-direction: column;
-  }
-  .docu-content-wrapper {
-    flex-direction: column;
-  }
-  .docu-toc {
-    width: 100vw;
-    border-left: none;
-    border-top: 1px solid var(--border-color);
-    position: static;
-    min-height: auto;
-    padding: 24px 16px;
+    gap: 18px;
   }
 }
 </style>

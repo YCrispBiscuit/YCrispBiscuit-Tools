@@ -11,7 +11,7 @@
  Target Server Version : 80042 (8.0.42)
  File Encoding         : 65001
 
- Date: 11/07/2025 18:02:20
+ Date: 14/07/2025 15:00:37
 */
 
 SET NAMES utf8mb4;
@@ -328,42 +328,6 @@ INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (846, 
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (847, 3, 'resources/ACGN_Personal_Preference_Table_Generator/ZenlessZoneZero/147.png', '安东·伊万诺夫', 147);
 
 -- ----------------------------
--- Table structure for documentations
--- ----------------------------
-DROP TABLE IF EXISTS `documentations`;
-CREATE TABLE `documentations`  (
-  `Documentations_ID` int NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-  `Documentations_Key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '分区唯一标识',
-  `Documentations_Title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '分区标题',
-  `Documentations_Desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '分区简介',
-  `Documentations_Details` json NULL COMMENT '分区详情',
-  `Documentations_Icon` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '分区图标',
-  PRIMARY KEY (`Documentations_ID`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of documentations
--- ----------------------------
-
--- ----------------------------
--- Table structure for documentations_md_file
--- ----------------------------
-DROP TABLE IF EXISTS `documentations_md_file`;
-CREATE TABLE `documentations_md_file`  (
-  `Documentations_MD_File_ID` int NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-  `Documentations_ID` int NULL DEFAULT NULL COMMENT '外键，关联分区ID',
-  `Documentations_MD_File_Name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `Documentations_MD_File_Path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`Documentations_MD_File_ID`) USING BTREE,
-  INDEX `key2`(`Documentations_ID` ASC) USING BTREE,
-  CONSTRAINT `key2` FOREIGN KEY (`Documentations_ID`) REFERENCES `documentations` (`Documentations_ID`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of documentations_md_file
--- ----------------------------
-
--- ----------------------------
 -- Table structure for user
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
@@ -385,23 +349,6 @@ CREATE TABLE `user`  (
 -- ----------------------------
 -- Triggers structure for table data_source_acgn_personal_preference_table_generator
 -- ----------------------------
-DROP TRIGGER IF EXISTS `Update_Number_After_Insert`;
-delimiter ;;
-CREATE TRIGGER `Update_Number_After_Insert` AFTER INSERT ON `data_source_acgn_personal_preference_table_generator` FOR EACH ROW BEGIN
-  UPDATE acgn_personal_preference_table_generator
-  SET Data_Source_Number = (
-    SELECT COUNT(*)
-    FROM data_source_acgn_personal_preference_table_generator
-    WHERE ACGN_Personal_Preference_Table_Generator_ID = NEW.ACGN_Personal_Preference_Table_Generator_ID
-  )
-  WHERE ACGN_Personal_Preference_Table_Generator_ID = NEW.ACGN_Personal_Preference_Table_Generator_ID;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table data_source_acgn_personal_preference_table_generator
--- ----------------------------
 DROP TRIGGER IF EXISTS `Update_Number_After_Delete`;
 delimiter ;;
 CREATE TRIGGER `Update_Number_After_Delete` AFTER DELETE ON `data_source_acgn_personal_preference_table_generator` FOR EACH ROW BEGIN
@@ -412,6 +359,23 @@ CREATE TRIGGER `Update_Number_After_Delete` AFTER DELETE ON `data_source_acgn_pe
     WHERE ACGN_Personal_Preference_Table_Generator_ID = OLD.ACGN_Personal_Preference_Table_Generator_ID
   )
   WHERE ACGN_Personal_Preference_Table_Generator_ID = OLD.ACGN_Personal_Preference_Table_Generator_ID;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Triggers structure for table data_source_acgn_personal_preference_table_generator
+-- ----------------------------
+DROP TRIGGER IF EXISTS `Update_Number_After_Insert`;
+delimiter ;;
+CREATE TRIGGER `Update_Number_After_Insert` AFTER INSERT ON `data_source_acgn_personal_preference_table_generator` FOR EACH ROW BEGIN
+  UPDATE acgn_personal_preference_table_generator
+  SET Data_Source_Number = (
+    SELECT COUNT(*)
+    FROM data_source_acgn_personal_preference_table_generator
+    WHERE ACGN_Personal_Preference_Table_Generator_ID = NEW.ACGN_Personal_Preference_Table_Generator_ID
+  )
+  WHERE ACGN_Personal_Preference_Table_Generator_ID = NEW.ACGN_Personal_Preference_Table_Generator_ID;
 END
 ;;
 delimiter ;
