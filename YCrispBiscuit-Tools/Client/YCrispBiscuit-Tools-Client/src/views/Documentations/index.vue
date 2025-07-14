@@ -36,6 +36,7 @@
         <!-- 左下：正文卡片 -->
         <section class="ycb-content-card">
           <!-- 正文区域，先空着 -->
+          <Markdown :content="docContent" />
         </section>
         <!-- 右下：目录+链接卡片 -->
         <aside class="ycb-toc-link-card">
@@ -62,12 +63,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { NList, NListItem, NButton, NIcon } from 'naive-ui';
 import { SunnyOutline as sunnyOutline, MoonOutline as moonOutline } from '@vicons/ionicons5';
 import { useAppStore } from '@/stores/app';
-import { getDocumentationsList, getCategoryDocs } from './Data/Data';
+import { getDocumentationsList, getCategoryDocs, getDocContent } from './Data/Data';
+import Markdown from './Markdown.vue'
 
 const appStore = useAppStore();
 const router = useRouter();
@@ -76,6 +78,7 @@ const categoryKey = ref(route.query.category as string || '');
 const categoryTitle = ref('');
 const docMenuOptions = ref<{ label: string, key: string }[]>([]);
 const activeDocKey = ref('');
+const docContent = ref('')
 
 const activeDocLabel = computed(() => {
   const doc = docMenuOptions.value.find(d => d.key === activeDocKey.value);
@@ -97,6 +100,14 @@ onMounted(async () => {
   if (docs.length) {
     activeDocKey.value = docs[0].key;
   }
+  // 加载文档内容
+  async function loadDocContent(key: string) {
+    docContent.value = await getDocContent(key, categoryKey.value)
+  }
+
+  watch(activeDocKey, (key) => {
+    if (key) loadDocContent(key)
+  }, { immediate: true })
 });
 
 function goBack() {

@@ -1,5 +1,5 @@
 import request from '@/utils/request' // 请求工具
-
+import axios from 'axios';
 // ===================== 统一分区字段定义 =====================
 export interface Documentations {
   /** 文件夹名称 */
@@ -78,7 +78,7 @@ export async function getDocumentationsList(): Promise<Documentations[]> {
     logo: item.logo
       ? IMAGE_BASE_URL + item.logo.replace(
         /^resources[\/]?/, ''
-      ) : '',   
+      ) : '',
     Documentations_Key: item.info?.Documentations_Key || '',
     Documentations_Title: item.info?.Documentations_Title || '',
     Documentations_Desc: item.info?.Documentations_Desc || '',
@@ -91,10 +91,15 @@ export async function getDocContent(docKey: string, categoryKey?: string): Promi
   if (!docKey || !categoryKey) return '';
   try {
     // 拼接静态md文件URL，如 /static/分区名/xxx.md
-    const url = `/static/${categoryKey}/${docKey}`;
+    const url = `http://localhost:8080/static/Documentations/${categoryKey}/${docKey}`;
+
+    console.log(`getDocContent 请求URL：`, url); // 日志输出
     const res = await request.get(url, { responseType: 'text' });
+    //const res = await axios.get(url, { responseType: 'text' });
+    //console.log('原生 axios 返回：', res);
     // axios自动解包data，直接返回字符串内容
     console.log(`getDocContent 返回：`, res); // 日志输出
+    console.log('getDocContent 返回类型:', typeof res, res);
     return typeof res === 'string' ? res : (res?.data ?? '');
   } catch {
     return '';

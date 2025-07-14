@@ -42,11 +42,6 @@ const route = useRoute()
 // 获取全局主题store实例
 const appStore = useAppStore();
 
-// 默认切换为暗色主题（黑色主题）
-if (!appStore.isDark) {
-    appStore.toggleTheme();
-}
-
 // 顶部导航栏菜单配置，包含三个页面
 const menuOptions = [
     { label: '主页', key: '/' }, // 首页
@@ -96,7 +91,7 @@ const isDark = computed(() => appStore.isDark)
     /* 高斯模糊 */
     box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.04);
     /* 阴影 */
-    opacity: 0.75; 
+    opacity: 0.75;
     /* 整体半透明，内容和背景一起变淡 */
 }
 
