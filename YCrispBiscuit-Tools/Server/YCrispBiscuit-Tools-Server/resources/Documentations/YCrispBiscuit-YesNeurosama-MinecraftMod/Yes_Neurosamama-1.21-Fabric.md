@@ -16,7 +16,7 @@ public static Block register(String id, Block block) {
 
 ---
 
-**2. 新建 Block 包和 ModBlocks 类**
+**2. 新建 Block 包和 ModBlocks 类** 
 
 新建属于自己的软件包 Block，并新建 Java 类 ModBlocks。
 

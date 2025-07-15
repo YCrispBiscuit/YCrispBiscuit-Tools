@@ -81,3 +81,19 @@ body::-webkit-scrollbar {
     background-color var(--transition-duration) var(--transition-timing),
     border-color var(--transition-duration) var(--transition-timing);
 }
+
+
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+  list-style-position: outside;
+  margin-left: 0;
+  margin-top: 0.6em;
+  margin-bottom: 0.6em;
+}
+
+.markdown-body li {
+  margin-left: 0;
+  padding-left: 0;
+}

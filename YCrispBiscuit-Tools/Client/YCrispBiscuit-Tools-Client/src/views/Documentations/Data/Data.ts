@@ -91,7 +91,7 @@ export async function getDocContent(docKey: string, categoryKey?: string): Promi
   if (!docKey || !categoryKey) return '';
   try {
     // 拼接静态md文件URL，如 /static/分区名/xxx.md
-    const url = `http://localhost:8080/static/Documentations/${categoryKey}/${docKey}`;
+    const url = `/api/static/Documentations/${categoryKey}/${docKey}`;
 
     console.log(`getDocContent 请求URL：`, url); // 日志输出
     const res = await request.get(url, { responseType: 'text' });

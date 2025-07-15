@@ -1,147 +1,373 @@
 <template>
-    <div class="markdown-body" v-html="renderedHtml"></div>
+    <div class="markdown-body">
+        <div ref="markdownRoot" v-html="renderHeadingsHrBoldQuoteTask(content || '')" />
+        <!--pre>{{ filterNonHeadingsHrBoldQuoteTask(content) }}</pre-->
+    </div>
 </template>
 
+
 <script setup lang="ts">
-import { ref, watch, onMounted, defineProps, defineEmits } from 'vue';
-import MarkdownIt from 'markdown-it' // 核心解析器
-//import markdownItAnchor from 'markdown-it-anchor' // 自动为标题生成锚点
-//import markdownItTOC from 'markdown-it-toc-done-right' // 自动生成目录（TOC）
-//import markdownItTaskLists from 'markdown-it-task-lists' // 支持 - [ ]、- [x] 任务列表
-//import markdownItFootnote from 'markdown-it-footnote' // 支持脚注语法
-//import markdownItHighlightjs from 'markdown-it-highlightjs' // 代码块高亮（highlight.js）
-//import * as markdownItEmoji from 'markdown-it-emoji' // 支持 :smile: 等 emoji
-//import markdownItContainer from 'markdown-it-container' // 支持 info/warning/note 等自定义块
-//import markdownItSub from 'markdown-it-sub' // 下标 ~sub~
-//import markdownItSup from 'markdown-it-sup' // 上标 ^sup^
-//import markdownItDeflist from 'markdown-it-deflist' // 支持定义列表
-//import markdownItMark from 'markdown-it-mark' // ==高亮==
-//import markdownItIns from 'markdown-it-ins' // ++插入++
-// import markdownItKatex from 'markdown-it-katex' // 支持 LaTeX 数学公式（KaTeX 渲染）
-// import markdownItMathjax from 'markdown-it-mathjax3' // 支持 LaTeX 数学公式（MathJax 渲染）
-// import markdownItImsize from 'markdown-it-imsize' // 支持 ![img](url =WxH)
-// import markdownItMermaid from 'markdown-it-mermaid' // 支持流程图、时序图等
-// import markdownItAttrs from 'markdown-it-attrs' // 支持为元素添加 class/id 等属性
-// import markdownItLinkAttributes from 'markdown-it-link-attributes' // 支持为链接自动添加属性
-// import markdownItCheckbox from 'markdown-it-checkbox' // 支持复选框语法
-// import markdownItAdmonition from 'markdown-it-admonition' // 支持提示块
-// import markdownItPlantuml from 'markdown-it-plantuml' // UML 图支持
-// import markdownItTexmath from 'markdown-it-texmath' // 数学公式扩展
-// import markdownItGithubHeadings from 'markdown-it-github-headings' // GitHub 风格标题锚点
-// import markdownItCopy from 'markdown-it-copy' // 代码块一键复制
-// import markdownItPageBreak from 'markdown-it-page-break' // 分页符支持
-// import markdownItMetadata from 'markdown-it-metadata' // 元数据解析
-// import markdownItInclude from 'markdown-it-include' // include 语法
-// import markdownItHtml5Embed from 'markdown-it-html5-embed' // HTML5 嵌入
-// import markdownItImplicitFigures from 'markdown-it-implicit-figures' // 图片转 figure
-// import markdownItVideo from 'markdown-it-video' // 视频嵌入
-// import markdownItAudio from 'markdown-it-audio' // 音频嵌入
-// import markdownItForInline from 'markdown-it-for-inline' // 自定义内联渲染
-// import markdownItForBlock from 'markdown-it-for-block' // 自定义块级渲染
+import { defineProps, ref, onMounted, nextTick, watch } from 'vue'
+import MarkdownIt from 'markdown-it'
 
 const props = defineProps<{ content: string }>()
-const emit = defineEmits<{
-    (e: 'updateToc', toc: { id: string, text: string }[]): void
-    (e: 'updateLinks', links: { url: string, text: string }[]): void
-}>()
 
-const renderedHtml = ref('')
 
-console.log('Markdown.vue content:', props.content)
+// 只渲染各级标题
+const headingParser = new MarkdownIt({
+    html: true,
+    linkify: true,//把网址文本变成链接。
+    typographer: true,//美化标点和符号
+    breaks: true,// 支持普通换行渲染为 <br>
+})
 
-// 目录和链接提取
-function extractTocAndLinks(md: MarkdownIt, content: string) {
-    const tokens = md.parse(content, {})
-    // 目录：只提取标题（h1~h6）
-    const toc: { id: string, text: string }[] = []
-    // 链接：提取所有 link_open
-    const links: { url: string, text: string }[] = []
-    let lastLinkText = ''
-    tokens.forEach((token, idx) => {
-        // TOC
-        if (token.type === 'heading_open') {
-            const level = token.tag
-            const next = tokens[idx + 1]
-            if (next && next.type === 'inline') {
-                // markdown-it-anchor 默认生成 id
-                const id = next.children?.find(t => t.type === 'text')?.content?.replace(/\s+/g, '-') || ''
-                toc.push({ id: token.attrs?.find(a => a[0] === 'id')?.[1] || id, text: next.content })
-            }
+// 只渲染标题，其他内容不做处理，直接用 headingParser 默认规则即可
+
+const renderHeadingsHrBoldQuoteTask = (md: string) => {
+    const lines = md.split(/\r?\n/)
+    const filteredLines = []
+    let inCodeBlock = false
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        if (/^`{3,}/.test(line)) {
+            inCodeBlock = !inCodeBlock
+            filteredLines.push(line)
+            continue
         }
-        // Links
-        if (token.type === 'link_open') {
-            const href = token.attrs?.find(a => a[0] === 'href')?.[1]
-            // 获取链接文本
-            const next = tokens[idx + 1]
-            if (href && next && next.type === 'text') {
-                lastLinkText = next.content
-                links.push({ url: href, text: lastLinkText })
-            }
+        if (inCodeBlock) {
+            filteredLines.push(line)
+            continue
         }
-    })
-    emit('updateToc', toc)
-    emit('updateLinks', links)
+        if (
+            line.trim() === '' || // 保留空行用于分段
+            /^#{1,6} /.test(line) ||
+            /^\s*-{3,}\s*$/.test(line) ||
+            /\*\*[\s\S]+?\*\*/.test(line) ||
+            /^> /.test(line) ||
+            /^- \[.\]/.test(line) ||
+            /^<div\s+align=["']center["'].*?>/.test(line) || // 支持原始 HTML 居中标签
+            /^<\/div>/.test(line) || // 支持闭合标签
+            /^<table.*?>/.test(line) || // 保留原生 HTML 表格标签
+            /^<\/table>/.test(line) ||
+            /^<tr.*?>/.test(line) ||
+            /^<\/tr>/.test(line) ||
+            /^<td.*?>/.test(line) ||
+            /^<\/td>/.test(line) ||
+            /^<th.*?>/.test(line) ||
+            /^<\/th>/.test(line) ||
+            /^\s*[-*+] /.test(line) || // 普通无序列表
+            /^\s*\d+\. /.test(line) || // 普通有序列表
+            /\*[\s\S]+?\*/.test(line) || // 斜体
+            /^[^#>\-\*\d<].+/.test(line) || // 普通说明文字（非特殊符号开头的行）
+            /^!\[[^\]]*\]\([^\)]*\)/.test(line) || // 图片语法 ![alt](url)
+            /^\[[^\]]*\]\([^\)]*\)/.test(line) || // 链接语法 [text](url)
+            /^\|.*\|$/.test(line) // 表格语法（支持各种表格）
+        ) {
+            filteredLines.push(line)
+        }
+    }
+    return headingParser.render(filteredLines.join('\n'))
+        .replace(/<h([1-6])>(.*?)<\/h\1>/g, '<h$1>$2</h$1>')
+        .replace(/<hr \/>/g, '<hr />')
 }
 
-function renderMarkdown() {
-    const md = new MarkdownIt({
-        html: true,
-        linkify: true,
-        typographer: true
-    })
-
-
-    renderedHtml.value = md.render(props.content || '')
-    extractTocAndLinks(md, props.content || '')
+const filterNonHeadingsHrBoldQuoteTask = (md: string) => {
+    const lines = md.split(/\r?\n/)
+    return lines.filter(line =>
+        !(/^#{1,6} /.test(line) ||
+            /^\s*-{3,}\s*$/.test(line) ||
+            /\*\*[\s\S]+?\*\*/.test(line) ||
+            /^> /.test(line) ||
+            /^- \[.\]/.test(line))
+    ).join('\n')
 }
 
-watch(() => props.content, () => {
-    renderMarkdown()
-}, { immediate: true })
+
+
+
+
+
+
+
+
+
+
+
+const markdownRoot = ref<HTMLElement | null>(null)
+
+function addCopyButtons() {
+  if (!markdownRoot.value) return;
+  // 移除旧按钮，防止重复
+  markdownRoot.value.querySelectorAll('.ycb-copy-btn').forEach(btn => btn.remove());
+  // 先收集所有 pre 节点，批量处理，避免 DOM 结构变化导致只处理第一个
+  const preList = Array.from(markdownRoot.value.querySelectorAll('pre'));
+  // 彻底修复：cloneNode 深拷贝 pre，插入 wrapper 后不影响原 preList
+  preList.forEach(pre => {
+    const parent = pre.parentNode;
+    const next = pre.nextSibling;
+    // 创建按钮
+    const btn = document.createElement('button');
+    btn.className = 'ycb-copy-btn';
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><rect x="2" y="2" width="13" height="13" rx="2" ry="2"></rect></svg>';
+    btn.title = '复制代码';
+    btn.onclick = () => {
+      const code = pre.querySelector('code');
+      if (code) {
+        navigator.clipboard.writeText(code.innerText).then(() => {
+          btn.textContent = '已复制!';
+          setTimeout(() => {
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><rect x="2" y="2" width="13" height="13" rx="2" ry="2"></rect></svg>';
+          }, 1200);
+        });
+      }
+    };
+    // 固定按钮在 pre 父容器右上角，避免层级错误
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'relative';
+    btn.style.position = 'absolute';
+    btn.style.top = '10px';
+    btn.style.right = '14px';
+    btn.style.zIndex = '10';
+    btn.style.background = 'var(--bg-color-secondary, #f6f8fa)';
+    btn.style.border = 'none';
+    btn.style.borderRadius = '6px';
+    btn.style.padding = '4px 8px';
+    btn.style.cursor = 'pointer';
+    btn.style.fontSize = '14px';
+    btn.style.color = 'var(--text-color, #333)';
+    btn.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
+    btn.style.transition = 'background 0.2s';
+    btn.style.pointerEvents = 'auto';
+    btn.onmouseenter = () => btn.style.background = 'var(--bg-color, #e6f7ff)';
+    btn.onmouseleave = () => btn.style.background = 'var(--bg-color-secondary, #f6f8fa)';
+    // cloneNode 深拷贝 pre，避免 DOM 移动影响后续 pre
+    const preClone = pre.cloneNode(true);
+    wrapper.appendChild(preClone);
+    wrapper.appendChild(btn);
+    if (parent) {
+      parent.insertBefore(wrapper, next);
+      parent.removeChild(pre);
+    }
+  });
+}
+
+
+
+
 
 onMounted(() => {
-    renderMarkdown()
-})
+  nextTick(() => {
+    addCopyButtons();
+  });
+});
+
+// 监听 content，每次变化都插入按钮，保证按钮始终可见
+watch(() => props.content, () => {
+  nextTick(() => {
+    addCopyButtons();
+  });
+});
 </script>
+
 
 <style scoped>
 .markdown-body {
-    font-size: 1rem;
-    color: var(--text-color);
+    font-size: 16px;
+    color: var(--text-color, #333);
     line-height: 1.7;
     word-break: break-word;
     background: transparent;
+    padding: 0;
 }
 
-.markdown-body h1,
-.markdown-body h2,
-.markdown-body h3 {
-    margin-top: 1.2em;
-    margin-bottom: 0.6em;
+/* 标题样式 */
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4),
+.markdown-body :deep(h5),
+.markdown-body :deep(h6) {
     font-weight: bold;
+    margin: 1.2em 0 0.6em 0;
+    color: var(--text-color, #222);
 }
 
-.markdown-body p {
-    margin: 0.6em 0;
-}
-
-.markdown-body ul,
-.markdown-body ol {
-    margin: 0.6em 0 0.6em 1.2em;
-}
-
-.markdown-body code {
-    background: var(--bg-color-secondary);
-    padding: 2px 6px;
+/* 加粗文本样式 */
+.markdown-body :deep(strong) {
+    font-weight: bold;
+    color: #1890ff;
+    /* 可自定义为主色 */
+    background: rgba(24, 144, 255, 0.05);
+    /* 可选高亮底色 */
+    padding: 2px 4px;
     border-radius: 4px;
-    font-size: 0.95em;
 }
 
-.markdown-body pre {
-    background: var(--bg-color-secondary);
-    padding: 12px;
+/* 分割线样式 */
+.markdown-body :deep(hr) {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 24px 0;
+    height: 0;
+}
+
+/* 引用样式 */
+.markdown-body :deep(blockquote) {
+    border-left: 4px solid #1890ff;
+    background: rgba(24, 144, 255, 0.05);
+    padding: 0.5em 1em;
+    margin: 1em 0;
+    color: #555;
+    font-style: italic;
+    border-radius: 6px;
+}
+
+
+
+/* 任务列表样式 */
+.markdown-body :deep(.task-list-item) {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 1.8em;
+    position: relative;
+}
+
+.markdown-body :deep(.task-list-item input[type="checkbox"]) {
+    position: absolute;
+    left: 0;
+    top: 0.2em;
+    width: 1.2em;
+    height: 1.2em;
+    accent-color: #1890ff;
+    cursor: pointer;
+}
+
+.markdown-body :deep(.task-list-item input[type="checkbox"]:checked) {
+    accent-color: #52c41a;
+}
+
+
+/* 支持 markdown 原始 HTML 标签样式，可根据需要自定义 */
+.markdown-body :deep(div[align="center"]) {
+    text-align: center !important;
+    margin: 1.5em 0 !important;
+}
+
+
+/* 居中容器内图片紧邻排列，文本分行且斜体正常 */
+.markdown-body :deep(div[align="center"] > img) {
+    display: inline-block !important;
+    margin: 0 4px !important;
+    vertical-align: middle !important;
+}
+.markdown-body :deep(div[align="center"] > em),
+.markdown-body :deep(div[align="center"] > strong),
+.markdown-body :deep(div[align="center"] > span),
+.markdown-body :deep(div[align="center"] > p) {
+    display: block !important;
+    margin: 8px 0 0 0 !important;
+    text-align: center !important;
+}
+.markdown-body :deep(div[align="center"] > *) {
+    max-width: 100% !important;
+}
+
+
+
+
+/* 图片样式 */
+.markdown-body :deep(img) {
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+    margin: 0 4px 0 0;
+    vertical-align: middle;
     border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* 链接样式 */
+.markdown-body :deep(a) {
+    color: #1890ff;
+    text-decoration: underline;
+    transition: color 0.2s;
+    word-break: break-all;
+}
+
+.markdown-body :deep(a):hover {
+    color: #52c41a;
+    text-decoration: underline;
+}
+
+
+
+/* 表格和代码块横向滚动样式 */
+.markdown-body :deep(table) {
+    width: auto;
+    max-width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
     overflow-x: auto;
-    font-size: 0.95em;
+    display: table; /* 修正为 table，保证多行多列布局 */
+}
+
+
+.markdown-body :deep(th),
+.markdown-body :deep(td) {
+    border: 1px solid #e5e5e5;
+    padding: 8px 12px;
+    text-align: left;
+    background: var(--table-bg, #fff); /* 支持黑白主题切换 */
+    vertical-align: top;
+    word-break: break-word;
+    min-width: 120px;
+    white-space: normal;
+}
+
+/* 分类徽章横向排列，文本/分组 block，img 保持 inline-block */
+.markdown-body :deep(td) img {
+    display: inline-block !important;
+    margin: 0 4px 0 0 !important;
+    vertical-align: middle !important;
+    width: auto !important;
+}
+.markdown-body :deep(td) p,
+.markdown-body :deep(td) span,
+.markdown-body :deep(td) strong {
+    display: block !important;
+    margin: 6px 0 !important;
+    width: 100%;
+}
+
+
+
+
+/* 代码块支持黑白主题切换 */
+
+.markdown-body :deep(pre) {
+    background: var(--code-bg, #f6f8fa);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 100%;
+    display: block;
+}
+
+.markdown-body :deep(pre code) {
+    padding: 0;
+    background: transparent;
+    font-size: inherit;
+}
+
+.markdown-body :deep(code) {
+    font-family: 'Fira Mono', 'Consolas', 'Menlo', 'Monaco', 'monospace';
+    background: var(--code-bg, #f6f8fa);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 15px;
 }
 </style>
