@@ -17,7 +17,7 @@ export interface Documentations {
   Documentations_Details: string;
 }
 
-const IMAGE_BASE_URL = 'https://e50d0ca04b77.ngrok-free.app/static/'; // TODO: 部署时请替换为实际后端地址
+const IMAGE_BASE_URL = 'http://localhost:8080/static/'; // TODO: 部署时请替换为实际后端地址
 
 let _cachedPartitions: any[] | null = null;
 

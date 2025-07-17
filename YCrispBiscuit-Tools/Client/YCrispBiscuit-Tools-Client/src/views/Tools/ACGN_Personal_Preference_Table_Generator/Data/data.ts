@@ -77,7 +77,7 @@ export async function fetchPreferenceTableItems(tableId: number): Promise<Prefer
     return []
   }
   // 图片基础URL，根据实际后端服务地址修改
-  const IMAGE_BASE_URL = 'https://e50d0ca04b77.ngrok-free.app/static/'; // TODO: 部署时请替换为实际后端地址
+  const IMAGE_BASE_URL = 'http://localhost:8080/static/'; // TODO: 部署时请替换为实际后端地址
 
   return arr.map(item => ({
     tableId: item.ACGN_Personal_Preference_Table_Generator_ID,
