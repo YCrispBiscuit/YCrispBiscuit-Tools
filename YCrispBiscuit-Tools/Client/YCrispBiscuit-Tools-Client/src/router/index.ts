@@ -1,5 +1,5 @@
 // router/index.ts
-import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
+import { createRouter, createWebHashHistory, type RouteLocationNormalized } from 'vue-router'
 import Home from '../views/Home.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -43,7 +43,7 @@ const routes = [
   }
 ]
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(), // ← 只需改这行
   routes
 })
 
