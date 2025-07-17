@@ -5,20 +5,20 @@ import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
   plugins: [vue()],
-  base: '/YCrispBiscuit-Tools/', 
+  base: '/YCrispBiscuit-Tools/',
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) }
   },
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://e50d0ca04b77.ngrok-free.app',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   },
   build: {
-    outDir: 'dist' 
+    outDir: 'dist'
   }
 })
