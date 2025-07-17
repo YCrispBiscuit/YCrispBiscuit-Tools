@@ -1,5 +1,6 @@
 import request from '@/utils/request' // 请求工具
-import axios from 'axios';
+
+
 // ===================== 统一分区字段定义 =====================
 export interface Documentations {
   /** 文件夹名称 */
@@ -16,20 +17,18 @@ export interface Documentations {
   Documentations_Details: string;
 }
 
-// 图片基础URL，根据实际后端服务地址修改
 const IMAGE_BASE_URL = 'http://localhost:8080/static/'; // TODO: 部署时请替换为实际后端地址
 
-// 全局缓存分区数据
 let _cachedPartitions: any[] | null = null;
 
 // 获取所有分区原始数据（只请求一次，后续用缓存）
 export async function fetchAllPartitions(): Promise<any[]> {
-  if (_cachedPartitions) return _cachedPartitions;
+  if (_cachedPartitions) return _cachedPartitions ?? [];
   try {
     const res = await request.get('/api/Documentations/all');
     const data = res.data || res;
     _cachedPartitions = data.partitions || [];
-    return _cachedPartitions;
+    return _cachedPartitions ?? [];
   } catch (e) {
     _cachedPartitions = [];
     return [];

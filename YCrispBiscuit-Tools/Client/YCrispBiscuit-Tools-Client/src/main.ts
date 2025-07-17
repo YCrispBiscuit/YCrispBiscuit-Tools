@@ -13,10 +13,14 @@ const pinia = createPinia()
 const { message } = createDiscreteApi(['message'])
 const app = createApp(App)
 
-app.use(router) // 使用路由
+
 
 // 使用 Pinia
 app.use(pinia)
+
+
+app.use(router) // 使用路由
+
 
 app.provide('message', message)
 

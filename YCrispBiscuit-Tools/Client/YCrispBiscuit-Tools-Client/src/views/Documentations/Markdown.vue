@@ -1,7 +1,6 @@
 <template>
     <div class="markdown-body">
         <div ref="markdownRoot" v-html="renderHeadingsHrBoldQuoteTask(content || '')" />
-        <!--pre>{{ filterNonHeadingsHrBoldQuoteTask(content) }}</pre-->
     </div>
 </template>
 
@@ -70,18 +69,6 @@ const renderHeadingsHrBoldQuoteTask = (md: string) => {
         .replace(/<h([1-6])>(.*?)<\/h\1>/g, '<h$1>$2</h$1>')
         .replace(/<hr \/>/g, '<hr />')
 }
-
-const filterNonHeadingsHrBoldQuoteTask = (md: string) => {
-    const lines = md.split(/\r?\n/)
-    return lines.filter(line =>
-        !(/^#{1,6} /.test(line) ||
-            /^\s*-{3,}\s*$/.test(line) ||
-            /\*\*[\s\S]+?\*\*/.test(line) ||
-            /^> /.test(line) ||
-            /^- \[.\]/.test(line))
-    ).join('\n')
-}
-
 
 
 
