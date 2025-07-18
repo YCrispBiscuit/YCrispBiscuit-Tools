@@ -22,10 +22,16 @@ const routes = [
     component: () => import('../views/About.vue'),
     meta: { requiresAuth: false }
   },
-   {
+  {
     path: '/Documentations',
     name: 'Documentations',
     component: () => import('../views/Documentations.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/Documentations/index',
+    name: 'DocumentationsIndex',
+    component: () => import('../views/Documentations/index.vue'),
     meta: { requiresAuth: false }
   },
 
@@ -35,12 +41,13 @@ const routes = [
     component: () => import('../views/Tools/ACGN_Personal_Preference_Table_Generator'),
     meta: { requiresAuth: false }
   },
-{
-    path: '/Documentations/index',
-    name: 'DocumentationsIndex',
-    component: () => import('../views/Documentations/index.vue'),
+  {
+    path:'/Tools/Agent_DIY/:applicationId',
+    name: 'Agent_DIY',
+    component: () => import('../views/Tools/Agent_DIY'),
     meta: { requiresAuth: false }
   }
+  
 ]
 const router = createRouter({
   history: createWebHashHistory(), // ← 只需改这行
