@@ -136,6 +136,33 @@ export interface TerminationCondition_Config {
     text: string;
 }
 
+export const rawData: Agent_Team = {
+    provider: "",
+    component_type: "",
+    version: 0,
+    component_version: 0,
+    description: "",
+    label: "",
+    config: {
+        participants: [],
+        termination_condition: {
+            provider: "",
+            component_type: "",
+            version: 0,
+            component_version: 0,
+            description: "",
+            label: "",
+            config: {
+                text: ""
+            }
+        },
+        max_turns: 0,
+        emit_team_events: false
+    }
+}
+
+
+/*
 export const rawData: Agent_Team =
 {
     "provider": "autogen_agentchat.teams.RoundRobinGroupChat",
@@ -430,3 +457,5 @@ export const rawData: Agent_Team =
         "emit_team_events": false
     }
 }
+
+*/

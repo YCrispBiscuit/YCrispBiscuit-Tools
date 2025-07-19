@@ -50,11 +50,11 @@ const tools = [
     }
   },
   {
-    name: '示例工具',
-    desc: '支持自适应布局和主题切换。',
+    name: 'AgentNode',
+    desc: '',
     // logo: new URL('@/assets/vue.svg', import.meta.url).href,
     action: () => {
-   
+   router.push('/Tools/Agent_DIY/index.vue');
     }
   },
   {

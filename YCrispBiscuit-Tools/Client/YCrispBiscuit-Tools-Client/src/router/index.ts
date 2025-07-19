@@ -1,5 +1,5 @@
 // router/index.ts
-import { createRouter, createWebHashHistory, type RouteLocationNormalized } from 'vue-router'
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
 import Home from '../views/Home.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -44,13 +44,19 @@ const routes = [
   {
     path:'/Tools/Agent_DIY/:applicationId',
     name: 'Agent_DIY',
-    component: () => import('../views/Tools/Agent_DIY'),
+    component: () => import('../views/Tools/Agent_DIY/index'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path:'/AgentNode/:applicationId',
+    name: 'Agent_Node',
+    component: () => import('../views/Tools/AgentNode/AgentNode.vue'),
     meta: { requiresAuth: false }
   }
   
 ]
 const router = createRouter({
-  history: createWebHashHistory(), // ← 只需改这行
+  history: createWebHistory(), // ← 只需改这行
   routes
 })
 

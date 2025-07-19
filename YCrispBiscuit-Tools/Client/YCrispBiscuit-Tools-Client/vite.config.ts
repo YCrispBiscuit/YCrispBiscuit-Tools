@@ -5,7 +5,7 @@ import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
   plugins: [vue()],
-  base: '/YCrispBiscuit-Tools/',
+  //base: '/YCrispBiscuit-Tools/',
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) }
   },
@@ -17,8 +17,11 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
-  },
+  }
+  /*
+  ,
   build: {
     outDir: 'dist'
   }
+    */
 })

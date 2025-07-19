@@ -1146,7 +1146,7 @@ function clearChangeLog() {
 
 
 // WebSocket 连接和消息处理
-import { useWebSocket } from '../../utils/websocket'
+import { useWebSocket } from '../../../utils/websocket'
 
 // 动态WebSocket连接，使用路由参数中的applicationId
 const websocketUrl = computed(() => `wss://chat.zy-jn.org.cn/aagent/ws/${applicationId.value}`)
