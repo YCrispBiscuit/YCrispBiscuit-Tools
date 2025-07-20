@@ -1,7 +1,7 @@
 <template>
   <YCB_Header></YCB_Header>
   <div class="Tools-body">
-   
+
     <div class="main-content">
       <div class="tools-page">
         <h1 class="tools-page-h1">工具箱</h1>
@@ -50,11 +50,11 @@ const tools = [
     }
   },
   {
-    name: 'AgentNode',
-    desc: '',
-    // logo: new URL('@/assets/vue.svg', import.meta.url).href,
+    name: 'Agent_DIY',
+    desc: '这是一个可视化的Agent DIY工具，仅作demo展示，因为本人暂未实现完整的Agent开发流程。',
+    logo: new URL('@/assets/Agent_DIY.png', import.meta.url).href,
     action: () => {
-   router.push('/Tools/Agent_DIY/index.vue');
+      router.push('/Tools/Agent_DIY');
     }
   },
   {
@@ -62,70 +62,70 @@ const tools = [
     desc: '这是一个示例工具的描述，可以自定义扩展。',
     //logo: new URL('@/assets/bilibili_black_00000.svg', import.meta.url).href,
     action: () => {
-      
+
     }
   },
   {
     name: '示例工具',
     desc: '支持自适应布局和主题切换。',
     action: () => {
-     
+
     }
   },
   {
     name: '示例工具',
     desc: '这是一个示例工具的描述，可以自定义扩展。',
     action: () => {
-    
+
     }
   },
   {
     name: '示例工具',
     desc: '支持自适应布局和主题切换。',
     action: () => {
-     
+
     }
   },
   {
     name: '示例工具',
     desc: '这是一个示例工具的描述，可以自定义扩展。',
     action: () => {
-    
+
     }
   },
   {
     name: '示例工具',
     desc: '支持自适应布局和主题切换。',
     action: () => {
-      
+
     }
   },
   {
     name: '示例工具',
     desc: '这是一个示例工具的描述，可以自定义扩展。',
     action: () => {
-     
+
     }
   },
   {
     name: '示例工具',
     desc: '支持自适应布局和主题切换。',
     action: () => {
-     
+
     }
   },
   {
     name: '示例工具',
     desc: '这是一个示例工具的描述，可以自定义扩展。',
     action: () => {
-     
+
     }
   },
   {
     name: '示例工具',
     desc: '支持自适应布局和主题切换。',
     action: () => {
-      
+
     }
   },
 

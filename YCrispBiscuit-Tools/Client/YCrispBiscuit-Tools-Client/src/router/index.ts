@@ -42,18 +42,24 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
-    path:'/Tools/Agent_DIY/:applicationId',
-    name: 'Agent_DIY',
-    component: () => import('../views/Tools/Agent_DIY/index'),
+    path: '/Tools/Agent_DI',
+    name: 'Agent_DIY_Index',
+    component: () => import('../views/Tools/Agent_DIY'),
     meta: { requiresAuth: false }
   },
   {
-    path:'/AgentNode/:applicationId',
+    path: '/Tools/Agent_DIY/:applicationId',
+    name: 'Agent_DIY',
+    component: () => import('../views/Tools/Agent_DIY'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/AgentNode/:applicationId',
     name: 'Agent_Node',
     component: () => import('../views/Tools/AgentNode/AgentNode.vue'),
     meta: { requiresAuth: false }
   }
-  
+
 ]
 const router = createRouter({
   history: createWebHistory(), // ← 只需改这行
