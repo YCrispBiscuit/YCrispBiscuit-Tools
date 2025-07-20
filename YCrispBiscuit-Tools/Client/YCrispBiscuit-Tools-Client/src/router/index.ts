@@ -31,7 +31,7 @@ const routes = [
   {
     path: '/Documentations/index',
     name: 'DocumentationsIndex',
-    component: () => import('../views/Documentations/index.vue'),
+    component: () => import('../views/Documentations'),
     meta: { requiresAuth: false }
   },
 
