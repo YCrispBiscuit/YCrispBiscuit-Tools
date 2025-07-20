@@ -8,10 +8,17 @@
 
 在该文件中按住 Ctrl，鼠标光标点击 `register`，进行跳转，锁定注册函数：
 
-```java
+```
 public static Block register(String id, Block block) {
     return Registry.register(Registries.BLOCK, id, block);
 }
+
+https://github.com/user/repo
+http://example.com/api/v1
+ftp://files.example.com
+www.google.com
+https://api.openai.com/v1/chat/completions
+
 ```
 
 ---

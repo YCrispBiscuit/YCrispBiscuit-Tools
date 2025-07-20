@@ -82,6 +82,36 @@ const renderHeadingsHrBoldQuoteTask = (md: string) => {
 
 const markdownRoot = ref<HTMLElement | null>(null)
 
+
+const urlRegex = /(https?:\/\/[^\s<>"'`]+|ftp:\/\/[^\s<>"'`]+|www\.[^\s<>"'`]+)/gi;
+
+function addLinksToCodeBlocks() {
+  if (!markdownRoot.value) return;
+  
+  // 处理所有代码块中的链接
+  const codeElements = markdownRoot.value.querySelectorAll('pre code');
+  codeElements.forEach(code => {
+    // 获取原始文本内容
+    const originalText = code.textContent || '';
+    
+    // 检查是否包含URL
+    if (urlRegex.test(originalText)) {
+      // 重置正则表达式
+      urlRegex.lastIndex = 0;
+      
+      // 将URL转换为可点击的链接
+      const linkedText = originalText.replace(urlRegex, (url) => {
+        // 确保URL有协议前缀
+        const href = url.startsWith('www.') ? `https://${url}` : url;
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="code-link">${url}</a>`;
+      });
+      
+      // 更新代码块内容
+      code.innerHTML = linkedText;
+    }
+  });
+}
+
 function addCopyButtons() {
   if (!markdownRoot.value) return;
   // 移除旧按钮，防止重复
@@ -100,7 +130,9 @@ function addCopyButtons() {
     btn.onclick = () => {
       const code = pre.querySelector('code');
       if (code) {
-        navigator.clipboard.writeText(code.innerText).then(() => {
+        // 复制时获取纯文本内容，不包含HTML标签
+        const textContent = code.textContent || code.innerText || '';
+        navigator.clipboard.writeText(textContent).then(() => {
           btn.textContent = '已复制!';
           setTimeout(() => {
             btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><rect x="2" y="2" width="13" height="13" rx="2" ry="2"></rect></svg>';
@@ -145,13 +177,15 @@ function addCopyButtons() {
 onMounted(() => {
   nextTick(() => {
     addCopyButtons();
+    addLinksToCodeBlocks();
   });
 });
 
-// 监听 content，每次变化都插入按钮，保证按钮始终可见
+// 监听 content，每次变化都插入按钮和处理代码块链接，保证功能始终可用
 watch(() => props.content, () => {
   nextTick(() => {
     addCopyButtons();
+    addLinksToCodeBlocks();
   });
 });
 </script>
@@ -284,6 +318,25 @@ watch(() => props.content, () => {
 .markdown-body :deep(a):hover {
     color: #52c41a;
     text-decoration: underline;
+}
+
+/* 代码块中的链接样式 */
+.markdown-body :deep(pre code a.code-link) {
+    color: #e6a23c !important;
+    text-decoration: underline !important;
+    font-weight: 500 !important;
+    background: rgba(230, 162, 60, 0.1) !important;
+    padding: 1px 3px !important;
+    border-radius: 3px !important;
+    transition: all 0.2s ease !important;
+    display: inline !important;
+    word-break: break-all !important;
+}
+
+.markdown-body :deep(pre code a.code-link):hover {
+    color: #f56c6c !important;
+    background: rgba(245, 108, 108, 0.15) !important;
+    text-decoration: underline !important;
 }
 
 

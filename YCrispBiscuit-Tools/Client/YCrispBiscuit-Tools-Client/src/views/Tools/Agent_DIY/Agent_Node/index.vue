@@ -609,7 +609,7 @@ onMounted(() => {
 /* 展开按钮样式 */
 .sidebar-toggle-btn {
     position: fixed;
-    top: 80px;
+    bottom: 80px;
     left: 20px;
     width: 48px;
     height: 48px;

@@ -566,16 +566,19 @@ function autoSave() {
     console.log('[WebSocket] 🕐 自动保存功能触发')
     console.log('[WebSocket] 🔍 检查当前定时器状态:', !!autoSaveTimer.value)
     
-    // 清除之前的定时器
+    // 清除之前的定时器（防抖机制）
     if (autoSaveTimer.value) {
-        console.log('[WebSocket] 🗑️ 清除之前的自动保存定时器')
+        console.log('[WebSocket] 🗑️ 清除之前的自动保存定时器（防抖）')
         clearTimeout(autoSaveTimer.value)
     }
     
     console.log('[WebSocket] ⏰ 设置新的自动保存定时器 (2秒后触发)')
+    console.log('[WebSocket] 💡 防抖机制：连续操作只会在最后一次操作2秒后保存')
+    
     // 设置新的定时器
     autoSaveTimer.value = setTimeout(() => {
         console.log('[WebSocket] 🕐 自动保存定时器触发，开始执行保存')
+        console.log('[WebSocket] 📊 即将保存最终状态，包含所有累积的用户操作')
         console.log('[WebSocket] 💾 执行自动保存到后端...')
         deployToBackend()
     }, 2000) // 2秒后自动保存

@@ -42,7 +42,7 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
-    path: '/Tools/Agent_DI',
+    path: '/Tools/Agent_DIY',
     name: 'Agent_DIY_Index',
     component: () => import('../views/Tools/Agent_DIY'),
     meta: { requiresAuth: false }
