@@ -96,8 +96,8 @@
                          @dragover.prevent 
                          @drop="onDrop('tools', $event)"
                          :class="{ 'drag-over': isDragOver, 'readonly-mode': readonly }">
-                        <div v-if="data.tools && data.tools.length > 0" class="tools-list">
-                            <div v-for="(tool, index) in data.tools" 
+                        <div v-if="data.workbench && data.workbench[0] && data.workbench[0].config && data.workbench[0].config.tools && data.workbench[0].config.tools.length > 0" class="tools-list">
+                            <div v-for="(tool, index) in data.workbench[0].config.tools" 
                                  :key="index" 
                                  class="tool-item">
                                 <span class="tool-name">{{ tool.config?.name || tool.name }}</span>

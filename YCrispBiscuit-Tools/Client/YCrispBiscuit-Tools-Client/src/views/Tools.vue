@@ -142,20 +142,29 @@ const gridCols = computed(() => {
 const itemVisible = ref(Array(tools.length).fill(false));
 const toolsListRef = ref<HTMLElement | null>(null);
 
+function playStaggeredIn() {
+  itemVisible.value = Array(tools.length).fill(false);
+  let idx = 0;
+  function showNext() {
+    if (idx >= tools.length) return;
+    itemVisible.value[idx] = true;
+    idx++;
+    if (idx < tools.length) {
+      requestAnimationFrame(() => {
+        setTimeout(showNext, 100); // 100ms 间隔，动画更丝滑
+      });
+    }
+  }
+  showNext();
+}
+
 onMounted(() => {
   nextTick(() => {
     if (!toolsListRef.value) return;
     const observer = new window.IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
-        // 先全部隐藏，再依次显示
-        itemVisible.value = Array(tools.length).fill(false);
-        tools.forEach((_, idx) => {
-          setTimeout(() => {
-            itemVisible.value[idx] = true;
-          }, idx * 120);
-        });
+        playStaggeredIn();
       } else {
-        // 离开视口时全部隐藏
         itemVisible.value = Array(tools.length).fill(false);
       }
     }, { threshold: 0.1 });

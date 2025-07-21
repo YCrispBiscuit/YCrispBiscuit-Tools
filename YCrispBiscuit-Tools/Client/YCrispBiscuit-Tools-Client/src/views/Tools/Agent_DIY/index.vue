@@ -557,7 +557,7 @@ function analyzeChanges(current: any, previous: any): { content: any, originalCo
             return
         }
         
-        // 处理数组 - 按照您的要求，数组作为整体记录
+        // 处理数组 - 数组作为整体记录
         if (Array.isArray(currentObj) || Array.isArray(previousObj)) {
             if (JSON.stringify(currentObj) !== JSON.stringify(previousObj)) {
                 console.log('[ChangeAnalysis] 📝 数组变化:', path)

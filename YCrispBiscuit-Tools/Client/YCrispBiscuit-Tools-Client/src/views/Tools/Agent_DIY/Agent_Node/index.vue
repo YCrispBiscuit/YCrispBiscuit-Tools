@@ -405,22 +405,38 @@ function onDropOnArea({ area, payload, nodeId }: any) {
         )
 
         if (agent) {
-            if (!agent.config.tools) {
-                agent.config.tools = []
+            // 确保 workbench 结构存在
+            if (!agent.config.workbench || agent.config.workbench.length === 0) {
+                agent.config.workbench = [{
+                    provider: "autogen_core.tools.StaticWorkbench",
+                    component_type: "StaticWorkbench", 
+                    version: 1,
+                    component_version: 1,
+                    description: "A workbench that provides a static set of tools that do not change after each tool execution.",
+                    label: "StaticWorkbench",
+                    config: {
+                        tools: []
+                    }
+                }]
+            }
+
+            // 确保第一个workbench的config.tools存在
+            if (!agent.config.workbench[0].config.tools) {
+                agent.config.workbench[0].config.tools = []
             }
 
             // 检查是否已存在
-            const exists = agent.config.tools.some(
+            const exists = agent.config.workbench[0].config.tools.some(
                 (t: any) => t.config.name === payload.item.config.name
             )
 
             if (!exists) {
-                agent.config.tools.push(JSON.parse(JSON.stringify(payload.item)))
-                console.log('[AgentNode] Added tool to agent:', payload.item.config.name)
+                agent.config.workbench[0].config.tools.push(JSON.parse(JSON.stringify(payload.item)))
+                console.log('[AgentNode] Added tool to agent workbench:', payload.item.config.name)
                 
                 // 记录变化
                 if (recordChange) {
-                    recordChange(`config.participants.${nodeId}.tools`, agent.config.tools, 'add_tool')
+                    recordChange(`config.participants.${nodeId}.workbench.config.tools`, agent.config.workbench[0].config.tools, 'add_tool')
                 }
             }
         }
@@ -456,12 +472,12 @@ function onRemoveTool({ nodeId, index }: any) {
         (p: any) => p.config.name === nodeId
     )
 
-    if (agent && agent.config.tools && index >= 0) {
-        agent.config.tools.splice(index, 1)
+    if (agent && agent.config.workbench?.[0]?.config?.tools && index >= 0) {
+        agent.config.workbench[0].config.tools.splice(index, 1)
         
         // 记录变化
         if (recordChange) {
-            recordChange(`config.participants.${nodeId}.tools`, agent.config.tools, 'remove_tool')
+            recordChange(`config.participants.${nodeId}.workbench.config.tools`, agent.config.workbench[0].config.tools, 'remove_tool')
         }
     }
 }

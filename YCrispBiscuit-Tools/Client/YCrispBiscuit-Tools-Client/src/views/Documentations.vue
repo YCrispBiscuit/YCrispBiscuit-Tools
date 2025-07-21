@@ -6,6 +6,8 @@
             <div class="Docus-page">
                 <h1 class="Docus-page-h1">文档中心</h1>
                 <p>这里收录了本站各领域工具的详细文档与说明，欢迎查阅！</p>
+                <p>   </p>
+                <p> 还有！你要做好被花里胡哨的页面突脸的心理准备哦！</p>
             </div>
         </div>
 
@@ -125,6 +127,9 @@ function action(item: any) {
 }
 
 .Docus-page-h1 {
+    margin-bottom: 16px;
+}
+p {
     margin-bottom: 16px;
 }
 

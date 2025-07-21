@@ -84,7 +84,26 @@ export interface Workbench_Config {
 }
 
 export interface Workbench_Config_Tool {
+    provider: string;
+    component_type: string;
+    version: number;
+    component_version: number;
+    description: string;
+    label: string;
+    config: Workbench_Config_Tool_Config;
 }
+
+
+
+
+export interface Workbench_Config_Tool_Config {
+    source_code: string;
+    name: string;
+    description: string;
+    global_imports: (string | { module: string; imports: string[] })[];
+    has_cancellation_support: boolean;
+}
+
 
 export interface ModelContext {
     provider: string;

@@ -72,7 +72,7 @@ export function parseRawDataToFlow(rawData: Agent_Team): any {
                 model_client: agent.config?.model_client || null,
                 workbench: agent.config?.workbench || [],
                 model_context: agent.config?.model_context || null,
-                tools: agent.config?.tools || []
+                tools: agent.config?.workbench?.[0]?.config?.tools || []
             }
         })
 

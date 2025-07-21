@@ -1,12 +1,12 @@
 //这里存放可视化节点视图中左侧的可选择的数据列表，比如工具列表、agent列表、终止条件列表等。
 //仿照src\views\Tools\Agent_DIY\Data\Raw_Data.ts，我的意思是命名最好是相同的
 
-import type { Agent, Tool, TerminationCondition } from './Raw_Data'
+import type { Agent, Workbench_Config_Tool, TerminationCondition } from './Raw_Data'
 
 //第一个是agent列表
 export const participants: Agent[] = [
   {
-    provider: "autogen_agentchat",
+    provider: "autogen_agentchat.agents.AssistantAgent",
     component_type: "AssistantAgent",
     version: 1,
     component_version: 1,
@@ -21,8 +21,8 @@ export const participants: Agent[] = [
       tool_call_summary_format: "{tool_name} called with {args}",
       metadata: {},
       model_client: {
-        provider: "openai",
-        component_type: "OpenAIClientConfiguration",
+        provider: "autogen_ext.models.openai.OpenAIChatCompletionClient",
+        component_type: "model",
         version: 1,
         component_version: 1,
         description: "OpenAI GPT-4模型配置",
@@ -47,7 +47,7 @@ export const participants: Agent[] = [
     }
   },
   {
-    provider: "autogen_agentchat",
+    provider: "autogen_agentchat.agents.AssistantAgent",
     component_type: "AssistantAgent",
     version: 1,
     component_version: 1,
@@ -62,8 +62,8 @@ export const participants: Agent[] = [
       tool_call_summary_format: "{tool_name} called with {args}",
       metadata: {},
       model_client: {
-        provider: "openai",
-        component_type: "OpenAIClientConfiguration",
+        provider: "autogen_ext.models.openai.OpenAIChatCompletionClient",
+        component_type: "model",
         version: 1,
         component_version: 1,
         description: "OpenAI GPT-4模型配置",
@@ -88,7 +88,7 @@ export const participants: Agent[] = [
     }
   },
   {
-    provider: "autogen_agentchat",
+    provider: "autogen_agentchat.agents.AssistantAgent",
     component_type: "AssistantAgent",
     version: 1,
     component_version: 1,
@@ -103,8 +103,8 @@ export const participants: Agent[] = [
       tool_call_summary_format: "{tool_name} called with {args}",
       metadata: {},
       model_client: {
-        provider: "openai",
-        component_type: "OpenAIClientConfiguration",
+        provider: "autogen_ext.models.openai.OpenAIChatCompletionClient",
+        component_type: "model",
         version: 1,
         component_version: 1,
         description: "OpenAI GPT-4模型配置",
@@ -130,7 +130,7 @@ export const participants: Agent[] = [
   },
   // 新增更多Agent选项
   {
-    provider: "autogen_agentchat",
+    provider: "autogen_agentchat.agents.AssistantAgent",
     component_type: "AssistantAgent",
     version: 1,
     component_version: 1,
@@ -145,8 +145,8 @@ export const participants: Agent[] = [
       tool_call_summary_format: "{tool_name} called with {args}",
       metadata: {},
       model_client: {
-        provider: "openai",
-        component_type: "OpenAIClientConfiguration",
+        provider: "autogen_ext.models.openai.OpenAIChatCompletionClient",
+        component_type: "model",
         version: 1,
         component_version: 1,
         description: "OpenAI GPT-4模型配置",
@@ -171,7 +171,7 @@ export const participants: Agent[] = [
     }
   },
   {
-    provider: "autogen_agentchat",
+    provider: "autogen_agentchat.agents.AssistantAgent",
     component_type: "AssistantAgent",
     version: 1,
     component_version: 1,
@@ -186,8 +186,8 @@ export const participants: Agent[] = [
       tool_call_summary_format: "{tool_name} called with {args}",
       metadata: {},
       model_client: {
-        provider: "openai",
-        component_type: "OpenAIClientConfiguration",
+        provider: "autogen_ext.models.openai.OpenAIChatCompletionClient",
+        component_type: "model",
         version: 1,
         component_version: 1,
         description: "OpenAI GPT-4模型配置",
@@ -212,7 +212,7 @@ export const participants: Agent[] = [
     }
   },
   {
-    provider: "autogen_agentchat",
+    provider: "autogen_agentchat.agents.AssistantAgent",
     component_type: "AssistantAgent",
     version: 1,
     component_version: 1,
@@ -227,8 +227,8 @@ export const participants: Agent[] = [
       tool_call_summary_format: "{tool_name} called with {args}",
       metadata: {},
       model_client: {
-        provider: "openai",
-        component_type: "OpenAIClientConfiguration",
+        provider: "autogen_ext.models.openai.OpenAIChatCompletionClient",
+        component_type: "model",
         version: 1,
         component_version: 1,
         description: "OpenAI GPT-4模型配置",
@@ -253,7 +253,7 @@ export const participants: Agent[] = [
     }
   },
   {
-    provider: "autogen_agentchat",
+    provider: "autogen_agentchat.agents.AssistantAgent",
     component_type: "AssistantAgent",
     version: 1,
     component_version: 1,
@@ -268,8 +268,8 @@ export const participants: Agent[] = [
       tool_call_summary_format: "{tool_name} called with {args}",
       metadata: {},
       model_client: {
-        provider: "openai",
-        component_type: "OpenAIClientConfiguration",
+        provider: "autogen_ext.models.openai.OpenAIChatCompletionClient",
+        component_type: "model",
         version: 1,
         component_version: 1,
         description: "OpenAI GPT-4模型配置",
@@ -294,7 +294,7 @@ export const participants: Agent[] = [
     }
   },
   {
-    provider: "autogen_agentchat",
+    provider: "autogen_agentchat.agents.AssistantAgent",
     component_type: "AssistantAgent",
     version: 1,
     component_version: 1,
@@ -309,8 +309,8 @@ export const participants: Agent[] = [
       tool_call_summary_format: "{tool_name} called with {args}",
       metadata: {},
       model_client: {
-        provider: "openai",
-        component_type: "OpenAIClientConfiguration",
+        provider: "autogen_ext.models.openai.OpenAIChatCompletionClient",
+        component_type: "model",
         version: 1,
         component_version: 1,
         description: "OpenAI GPT-4模型配置",
@@ -335,7 +335,7 @@ export const participants: Agent[] = [
     }
   },
   {
-    provider: "autogen_agentchat",
+    provider: "autogen_agentchat.agents.AssistantAgent",
     component_type: "AssistantAgent",
     version: 1,
     component_version: 1,
@@ -350,8 +350,8 @@ export const participants: Agent[] = [
       tool_call_summary_format: "{tool_name} called with {args}",
       metadata: {},
       model_client: {
-        provider: "openai",
-        component_type: "OpenAIClientConfiguration",
+        provider: "autogen_ext.models.openai.OpenAIChatCompletionClient",
+        component_type: "model",
         version: 1,
         component_version: 1,
         description: "OpenAI GPT-4模型配置",
@@ -377,10 +377,10 @@ export const participants: Agent[] = [
   }
 ]
 
-//第二个是工具列表，注意是Tool而不是Workbench_Config_Tool
-export const Tool_List: Tool[] = [
+//第二个是工具列表，现在应该是Workbench_Config_Tool
+export const Tool_List: Workbench_Config_Tool[] = [
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.WebSearchTool",
     component_type: "WebSearchTool",
     version: 1,
     component_version: 1,
@@ -406,7 +406,7 @@ def web_search(query: str) -> str:
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.CalculatorTool",
     component_type: "CalculatorTool",
     version: 1,
     component_version: 1,
@@ -437,7 +437,7 @@ def calculate(expression: str) -> float:
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.KnowledgeBaseTool",
     component_type: "KnowledgeBaseTool",
     version: 1,
     component_version: 1,
@@ -465,7 +465,7 @@ def search_knowledge_base(query: str, category: str = "all") -> str:
   },
   // 新增更多工具选项
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.EmailSenderTool",
     component_type: "EmailSenderTool",
     version: 1,
     component_version: 1,
@@ -494,7 +494,7 @@ def send_email(to: str, subject: str, body: str, html: bool = False) -> str:
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.FileProcessorTool",
     component_type: "FileProcessorTool",
     version: 1,
     component_version: 1,
@@ -521,7 +521,7 @@ def process_file(file_path: str, operation: str = "read") -> str:
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.ImageGeneratorTool",
     component_type: "ImageGeneratorTool",
     version: 1,
     component_version: 1,
@@ -548,7 +548,7 @@ def generate_image(prompt: str, style: str = "realistic") -> str:
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.DatabaseConnectorTool",
     component_type: "DatabaseConnectorTool",
     version: 1,
     component_version: 1,
@@ -575,7 +575,7 @@ def query_database(query: str, db_type: str = "sqlite") -> str:
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.TextTranslatorTool",
     component_type: "TextTranslatorTool",
     version: 1,
     component_version: 1,
@@ -603,7 +603,7 @@ def translate_text(text: str, target_lang: str = "en", source_lang: str = "auto"
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.WeatherTool",
     component_type: "WeatherTool",
     version: 1,
     component_version: 1,
@@ -630,7 +630,7 @@ def get_weather(location: str, days: int = 1) -> str:
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.CodeRunnerTool",
     component_type: "CodeRunnerTool",
     version: 1,
     component_version: 1,
@@ -657,7 +657,7 @@ def run_code(code: str, language: str = "python") -> str:
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.QRCodeTool",
     component_type: "QRCodeTool",
     version: 1,
     component_version: 1,
@@ -684,7 +684,7 @@ def generate_qrcode(data: str, size: int = 10) -> str:
     }
   },
   {
-    provider: "autogen_ext",
+    provider: "autogen_core.tools.NotificationTool",
     component_type: "NotificationTool",
     version: 1,
     component_version: 1,

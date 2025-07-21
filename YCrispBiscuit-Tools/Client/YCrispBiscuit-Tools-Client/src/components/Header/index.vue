@@ -165,6 +165,14 @@ const isDark = computed(() => appStore.isDark)
     /* 菜单靠右 */
 }
 
+
+:deep(.n-menu) {
+  --n-item-text-color: var(--text-color) !important;
+  --n-item-text-color-active: var(--primary-color) !important;
+  --n-item-text-color-hover: var(--primary-color) !important;
+}
+
+
 /* 主题切换区域，横向排列，鼠标手型，颜色跟随主题 */
 .theme-switch {
     display: flex;
@@ -195,7 +203,10 @@ const isDark = computed(() => appStore.isDark)
     font-size: 1rem;
     /* 字号 */
 }
-
+:deep(.theme-switch) {
+    color: var(--text-color) !important;
+    transition: color 0.2s;
+}
 /* 响应式：900px以下，缩小padding和字体、菜单宽度 */
 @media (max-width: 900px) {
     .header-content {

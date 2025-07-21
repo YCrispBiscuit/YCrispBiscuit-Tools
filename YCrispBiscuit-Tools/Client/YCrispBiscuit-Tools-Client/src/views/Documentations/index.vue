@@ -37,7 +37,7 @@
           <!-- 左下：正文卡片 -->
           <section class="ycb-content-card">
             <!-- 正文区域，先空着 -->
-            <Markdown :content="docContent" />
+            <Markdown :content="docContent" @updateToc="tocList = $event" @updateLinks="customLinks = $event" />
           </section>
           <!-- 右下：目录+链接卡片 -->
           <aside class="ycb-toc-link-card">
@@ -133,7 +133,7 @@ function handleDocChange(key: string) {
   /* 让伪元素绝对定位于此容器内 */
   overflow: hidden;
   /* 防止伪元素溢出容器 */
-  
+
 }
 
 .background::before {
@@ -173,7 +173,7 @@ function handleDocChange(key: string) {
   display: flex;
   gap: 32px;
   padding: 32px;
- /* background: var(--bg-color);*/
+  /* background: var(--bg-color);*/
   min-height: 100vh;
   max-width: 100vw;
   box-sizing: border-box;
@@ -192,9 +192,9 @@ function handleDocChange(key: string) {
 
 /* 左上title卡片 */
 .ycb-sidebar-title-card {
-  background: var(--bg-color-secondary);
+  background: transparent;
   border-radius: 20px;
-  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.5);
   padding: 28px 20px;
   display: flex;
   align-items: center;
@@ -211,9 +211,9 @@ function handleDocChange(key: string) {
 
 /* 左下文档列表卡片 */
 .ycb-doc-list-card {
-  background: var(--bg-color-secondary);
+  background: transparent;
   border-radius: 20px;
-  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.5);
   padding: 18px 12px;
   display: flex;
   flex-direction: column;
@@ -265,9 +265,9 @@ function handleDocChange(key: string) {
 }
 
 .ycb-navbar-card {
-  background: var(--bg-color-secondary);
+ background: transparent;
   border-radius: 18px;
-  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.5);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -290,6 +290,12 @@ function handleDocChange(key: string) {
   gap: 12px;
 }
 
+
+:deep(.n-button__content) {
+  color: var(--text-color) !important;
+}
+
+
 .ycb-content-row {
   display: flex;
   gap: 32px;
@@ -302,14 +308,14 @@ function handleDocChange(key: string) {
 .ycb-content-card {
   flex: 6.5 1 0%;
   min-width: 0;
- 
-  background: var(--bg-color-secondary);
+
+  background: transparent;
   border-radius: 18px;
-  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.5);
   padding: 16px 16px 16px 16px;
   min-height: 320px;
   transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
-overflow: visible !important;
+  overflow: visible !important;
 
 }
 
@@ -319,13 +325,14 @@ overflow: visible !important;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  
 }
 
 .ycb-toc-card,
 .ycb-link-card {
-  background: var(--bg-color-secondary);
-  border-radius: 18px;
-  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.08);
+  background: transparent;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px 0 rgba(64, 158, 255, 0.5);
   padding: 24px 18px;
   transition: color var(--transition-duration) var(--transition-timing), background-color var(--transition-duration) var(--transition-timing);
 }
@@ -344,6 +351,7 @@ overflow: visible !important;
   background: transparent;
   border-radius: 10px;
   padding: 0;
+  max-width: 100%;
 }
 
 .ycb-toc-list-item,
@@ -354,6 +362,11 @@ overflow: visible !important;
   padding: 8px 14px;
   margin-bottom: 5px;
   transition: background 0.3s, color 0.3s;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .ycb-toc-list-item a,
@@ -361,6 +374,12 @@ overflow: visible !important;
   color: var(--primary-color);
   text-decoration: none;
   transition: color 0.3s;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 @media (max-width: 900px) {
