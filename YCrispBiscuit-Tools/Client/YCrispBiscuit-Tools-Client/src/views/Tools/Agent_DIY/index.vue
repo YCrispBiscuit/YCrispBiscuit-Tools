@@ -167,6 +167,12 @@ const showOperationDetails = ref(false)
 // 共享的团队数据
 const teamData = ref(JSON.parse(JSON.stringify(rawData)))
 
+// 当前记录ID（从WebSocket接收的数据ID）
+const currentRecordId = ref<number | null>(null)
+
+// 上一次状态快照（用于计算变化差异）
+const previousStateSnapshot = ref<any>(null)
+
 // ========== 操作追踪系统 ========== //
 const operationLog = ref<any[]>([])
 
@@ -209,6 +215,12 @@ function recordChange(fieldPath: string, newValue: any, operationType: string = 
     // 如果正在执行撤销/重做操作，不记录变化
     if (isUndoRedoOperation.value) {
         return
+    }
+    
+    // 在记录变化前，先保存当前状态作为previousState（用于变化对比）
+    if (!previousStateSnapshot.value) {
+        console.log('[ChangeAnalysis] 📸 首次保存previousState快照')
+        previousStateSnapshot.value = JSON.parse(JSON.stringify(teamData.value))
     }
     
     // 在记录变化前，先保存当前状态到撤销栈
@@ -517,40 +529,153 @@ function getDataFromBackend() {
     }
 }
 
+// 分析数据变化（用于SubmissionRecord格式）
+function analyzeChanges(current: any, previous: any): { content: any, originalContent: any } {
+    console.log('[ChangeAnalysis] 🔍 开始分析数据变化')
+    console.log('[ChangeAnalysis] 📊 当前数据类型:', typeof current)
+    console.log('[ChangeAnalysis] 📊 之前数据类型:', typeof previous)
+    
+    const content: any = {}
+    const originalContent: any = {}
+    
+    if (!previous) {
+        console.log('[ChangeAnalysis] ⚠️ 没有之前的状态，返回完整当前状态')
+        return { 
+            content: JSON.parse(JSON.stringify(current)), 
+            originalContent: {} 
+        }
+    }
+    
+    // 递归比较对象，找出变化的键值对
+    function findChangedFields(currentObj: any, previousObj: any, path: string = '') {
+        if (typeof currentObj !== 'object' || typeof previousObj !== 'object') {
+            if (JSON.stringify(currentObj) !== JSON.stringify(previousObj)) {
+                console.log('[ChangeAnalysis] 🔍 发现变化字段:', path || 'root')
+                setNestedValue(content, path || 'root', currentObj)
+                setNestedValue(originalContent, path || 'root', previousObj)
+            }
+            return
+        }
+        
+        // 处理数组 - 按照您的要求，数组作为整体记录
+        if (Array.isArray(currentObj) || Array.isArray(previousObj)) {
+            if (JSON.stringify(currentObj) !== JSON.stringify(previousObj)) {
+                console.log('[ChangeAnalysis] 📝 数组变化:', path)
+                setNestedValue(content, path, JSON.parse(JSON.stringify(currentObj)))
+                setNestedValue(originalContent, path, JSON.parse(JSON.stringify(previousObj)))
+            }
+            return
+        }
+        
+        // 处理对象字段
+        const allKeys = new Set([
+            ...Object.keys(currentObj || {}), 
+            ...Object.keys(previousObj || {})
+        ])
+        
+        for (const key of allKeys) {
+            const newPath = path ? `${path}.${key}` : key
+            const currentValue = currentObj?.[key]
+            const previousValue = previousObj?.[key]
+            
+            findChangedFields(currentValue, previousValue, newPath)
+        }
+    }
+    
+    findChangedFields(current, previous)
+    
+    console.log('[ChangeAnalysis] 📊 分析结果:')
+    console.log('[ChangeAnalysis] 📋 变化字段数量:', Object.keys(content).length)
+    console.log('[ChangeAnalysis] 📋 content:', content)
+    console.log('[ChangeAnalysis] 📋 originalContent:', originalContent)
+    
+    return { content, originalContent }
+}
+
 // 部署/保存数据到后端
 function deployToBackend() {
     try {
         console.log('[WebSocket] 💾 部署数据到后端流程开始')
         console.log('[WebSocket] 🔍 当前连接状态:', isConnected.value)
         console.log('[WebSocket] 🔍 当前保存状态:', isSaving.value)
-        console.log('[WebSocket] 💾 部署数据到后端...')
+        console.log('[WebSocket] � 当前记录ID:', currentRecordId.value)
+        console.log('[WebSocket] �💾 部署数据到后端...')
         
         isSaving.value = true
         console.log('[WebSocket] 🔄 设置保存状态为true')
         
-        const deployData = {
-            table: 'AgentTeam',
-            action: 'upsert',
-            data: {
-                application_id: applicationId.value,
-                teamBody: {
-                    app_name: `AgentTeam${applicationId.value}`,
-                    team_json_body: teamData.value
-                }
+        // 检查必要的数据
+        if (!currentRecordId.value) {
+            console.warn('[WebSocket] ⚠️ 没有记录ID，无法发送数据')
+            isSaving.value = false
+            return
+        }
+        
+        // 分析变化
+        console.log('[WebSocket] 🔍 开始分析数据变化')
+        const changeAnalysis = analyzeChanges(teamData.value, previousStateSnapshot.value)
+        console.log('[WebSocket] 📊 变化分析完成:', {
+            contentFieldsCount: Object.keys(changeAnalysis.content).length,
+            originalContentFieldsCount: Object.keys(changeAnalysis.originalContent).length
+        })
+        
+        // 构造SubmissionRecord格式的数据
+        const submissionData = {
+            table: 'SubmissionRecord',
+            action: 'insert', 
+            value: {
+                master: currentRecordId.value.toString(),      // 使用当前记录ID作为master
+                teamBody: JSON.parse(JSON.stringify(teamData.value)),  // 完整的当前teamBody JSON对象
+                content: changeAnalysis.content,               // 变化的部分（当前值）
+                originalContent: changeAnalysis.originalContent // 变化的部分（原始值）
             }
         }
         
-        console.log('[WebSocket] 📝 构造的部署数据结构:')
-        console.log('[WebSocket] 📋 - 表名:', deployData.table)
-        console.log('[WebSocket] 📋 - 操作:', deployData.action)
-        console.log('[WebSocket] 📋 - applicationId:', deployData.data.application_id)
-        console.log('[WebSocket] 📋 - app_name:', deployData.data.teamBody.app_name)
-        console.log('[WebSocket] 📋 - 团队数据大小:', JSON.stringify(deployData.data.teamBody.team_json_body).length, '字符')
-        console.log('[WebSocket] 📝 完整部署数据:', JSON.stringify(deployData, null, 2))
+        console.log('[WebSocket] 📝 构造的SubmissionRecord数据结构:')
+        console.log('[WebSocket] 📋 - 表名:', submissionData.table)
+        console.log('[WebSocket] 📋 - 操作:', submissionData.action)
+        console.log('[WebSocket] 📋 - master ID:', submissionData.value.master)
+        console.log('[WebSocket] 📋 - teamBody大小:', JSON.stringify(submissionData.value.teamBody).length, '字符')
+        console.log('[WebSocket] 📋 - content变化字段数:', Object.keys(submissionData.value.content).length)
+        console.log('[WebSocket] 📋 - originalContent字段数:', Object.keys(submissionData.value.originalContent).length)
+        console.log('[WebSocket] 📝 完整SubmissionRecord数据:', JSON.stringify(submissionData, null, 2))
         
-        sendWebSocketMessage(deployData)
-        console.log('[WebSocket] ✅ 部署请求已发送')
+        sendWebSocketMessage(submissionData)
+        console.log('[WebSocket] ✅ SubmissionRecord部署请求已发送')
         console.log('[WebSocket] ⏳ 等待后端确认保存结果...')
+        console.log('[WebSocket] 🔍 发送时间戳:', new Date().toISOString())
+        console.log('[WebSocket] 📊 发送数据摘要:')
+        console.log('[WebSocket] 📋   - 表名:', submissionData.table)
+        console.log('[WebSocket] 📋   - 操作:', submissionData.action)
+        console.log('[WebSocket] 📋   - master ID:', submissionData.value.master)
+        console.log('[WebSocket] 📋   - teamBody大小:', JSON.stringify(submissionData.value.teamBody).length, '字符')
+        console.log('[WebSocket] 📋   - content变化字段:', Object.keys(submissionData.value.content).join(', '))
+        console.log('[WebSocket] 📋   - originalContent字段:', Object.keys(submissionData.value.originalContent).join(', '))
+        console.log('[WebSocket] 📋   - 实际发送的JSON大小:', JSON.stringify(submissionData).length, '字符')
+        
+        // 保存当前状态作为下次的previousState
+        previousStateSnapshot.value = JSON.parse(JSON.stringify(teamData.value))
+        console.log('[WebSocket] 📸 保存当前状态作为下次比较的基准')
+        
+        // 设置超时重置保存状态（防止一直显示保存中）
+        setTimeout(() => {
+            if (isSaving.value) {
+                console.warn('[WebSocket] ⚠️ 保存超时，自动重置保存状态')
+                console.warn('[WebSocket] 🕒 超时时间:', new Date().toISOString())
+                console.warn('[WebSocket] ❓ 可能原因: 1.后端未响应 2.网络问题 3.数据格式问题 4.后端错误')
+                
+                // 清理自动保存定时器
+                if (autoSaveTimer.value) {
+                    console.warn('[WebSocket] 🗑️ 超时清理自动保存定时器')
+                    clearTimeout(autoSaveTimer.value)
+                    autoSaveTimer.value = null
+                }
+                
+                isSaving.value = false
+            }
+        }, 10000) // 10秒超时
+        
+        console.log('[WebSocket] ⏰ 设置超时保护，10秒后检查保存状态')
         
     } catch (error: any) {
         console.error('[WebSocket] ❌ 部署失败:', error)
@@ -644,9 +769,11 @@ function connectWebSocket() {
     websocketInstance.connect((rawData) => {
         try {
             console.log('[WebSocket] � ==========收到新消息==========')
+            console.log('[WebSocket] 📥 收到时间戳:', new Date().toISOString())
             console.log('[WebSocket] 📥 收到原始数据类型:', typeof rawData)
             console.log('[WebSocket] �📥 收到原始数据:', rawData)
             console.log('[WebSocket] 🔍 原始数据详细结构:', JSON.stringify(rawData, null, 2))
+            console.log('[WebSocket] 🔍 数据长度:', JSON.stringify(rawData).length, '字符')
             
             // 处理数组格式数据
             let processedData = rawData
@@ -667,6 +794,24 @@ function connectWebSocket() {
             console.log('[WebSocket] 🔍 检查是否包含content字段:', !!processedData?.content)
             console.log('[WebSocket] 🔍 检查是否包含originalContent字段:', !!processedData?.originalContent)
             
+            // 检查是否是SubmissionRecord的响应确认
+            if (processedData && processedData.table === 'SubmissionRecord') {
+                console.log('[WebSocket] ✅ 检测到SubmissionRecord响应确认')
+                console.log('[WebSocket] 📝 SubmissionRecord响应:', processedData)
+                
+                // 清理自动保存定时器
+                if (autoSaveTimer.value) {
+                    console.log('[WebSocket] 🗑️ 清理自动保存定时器 (SubmissionRecord确认)')
+                    clearTimeout(autoSaveTimer.value)
+                    autoSaveTimer.value = null
+                }
+                
+                isSaving.value = false
+                console.log('[WebSocket] 🔄 重置保存状态为false (SubmissionRecord确认)')
+                console.log('[WebSocket] ✅ SubmissionRecord确认处理完成')
+                return
+            }
+            
             // 检查是否是部署确认消息（包含content/originalContent字段）
             if (processedData && (processedData.content || processedData.originalContent)) {
                 console.log('[WebSocket] ✅ 检测到部署确认消息')
@@ -674,9 +819,42 @@ function connectWebSocket() {
                     content: processedData.content,
                     originalContent: processedData.originalContent
                 })
+                
+                // 清理自动保存定时器
+                if (autoSaveTimer.value) {
+                    console.log('[WebSocket] 🗑️ 清理自动保存定时器 (部署确认)')
+                    clearTimeout(autoSaveTimer.value)
+                    autoSaveTimer.value = null
+                }
+                
                 isSaving.value = false
                 console.log('[WebSocket] 🔄 重置保存状态为false (部署确认)')
                 console.log('[WebSocket] ✅ 部署确认处理完成')
+                return
+            }
+            
+            // 检查是否是任何包含success或error字段的响应
+            if (processedData && (processedData.success !== undefined || processedData.error !== undefined)) {
+                console.log('[WebSocket] ✅ 检测到操作响应确认')
+                console.log('[WebSocket] 📝 操作响应:', {
+                    success: processedData.success,
+                    error: processedData.error,
+                    message: processedData.message
+                })
+                
+                // 清理自动保存定时器
+                if (autoSaveTimer.value) {
+                    console.log('[WebSocket] 🗑️ 清理自动保存定时器 (操作响应确认)')
+                    clearTimeout(autoSaveTimer.value)
+                    autoSaveTimer.value = null
+                }
+                
+                isSaving.value = false
+                console.log('[WebSocket] 🔄 重置保存状态为false (操作响应确认)')
+                if (processedData.error) {
+                    console.error('[WebSocket] ❌ 后端返回错误:', processedData.error)
+                }
+                console.log('[WebSocket] ✅ 操作响应确认处理完成')
                 return
             }
             
@@ -691,54 +869,51 @@ function connectWebSocket() {
             }
             
             console.log('[WebSocket] ✅ 检测到有效的数据获取响应，开始处理')
-            console.log('[WebSocket] 📋 有效响应的teamBody:', processedData.teamBody)
             
-            // 处理latest字段
-            let data = processedData
+            // 记录外层ID和数据源选择逻辑
+            let recordId = processedData.id
+            let finalTeamBody = processedData.teamBody
+            
+            console.log('[WebSocket] � 外层数据ID:', recordId)
             console.log('[WebSocket] 🔍 检查latest字段:', !!processedData.latest)
-            console.log('[WebSocket] 🔍 检查latest.teamBody字段:', !!processedData.latest?.teamBody)
             
+            // 根据latest字段决定使用哪个数据源
             if (processedData.latest && processedData.latest.teamBody) {
                 console.log('[WebSocket] 🔄 检测到latest字段，使用latest中的最新数据')
-                console.log('[WebSocket] 📊 latest数据:', processedData.latest)
+                console.log('[WebSocket] 📊 latest数据完整结构:', processedData.latest)
                 
-                const latestData = JSON.parse(JSON.stringify(processedData.latest))
-                console.log('[WebSocket] 📝 复制latest数据完成')
+                // 使用latest中的ID和teamBody
+                recordId = processedData.latest.id
+                finalTeamBody = processedData.latest.teamBody
                 
-                console.log('[WebSocket] 🗑️ 清理latest数据中的content字段')
-                delete latestData.content
-                delete latestData.originalContent
-                
-                data = {
-                    ...processedData,
-                    ...latestData,
-                    id: processedData.id || latestData.id,
-                    application_id: processedData.application_id || latestData.application_id
-                }
-                
-                console.log('[WebSocket] ✅ 已应用latest数据')
-                console.log('[WebSocket] 📊 合并后的数据结构:', {
-                    id: data.id,
-                    application_id: data.application_id,
-                    hasTeamBody: !!data.teamBody
-                })
+                console.log('[WebSocket] � 使用latest中的ID:', recordId)
+                console.log('[WebSocket] 📋 使用latest中的teamBody')
+            } else {
+                console.log('[WebSocket] 📋 latest为空或无teamBody，使用外层数据')
+                console.log('[WebSocket] 📋 使用外层ID:', recordId)
+                console.log('[WebSocket] 📋 使用外层teamBody')
             }
             
-            console.log('[WebSocket] 🗑️ 清理latest字段')
-            // 清理latest字段
-            if (data.latest) {
-                delete data.latest
-                console.log('[WebSocket] ✅ latest字段已清理')
-            }
+            console.log('[WebSocket] 🔍 最终选择的数据源:')
+            console.log('[WebSocket] � - 记录ID:', recordId)
+            console.log('[WebSocket] 🔍 - teamBody数据:', finalTeamBody)
+            console.log('[WebSocket] � - teamBody结构检查:', {
+                provider: finalTeamBody.provider,
+                component_type: finalTeamBody.component_type,
+                version: finalTeamBody.version,
+                hasConfig: !!finalTeamBody.config,
+                hasParticipants: !!finalTeamBody.config?.participants
+            })
             
-            console.log('[WebSocket] 🔍 检查最终数据结构:')
-            console.log('[WebSocket] 🔍 - data.teamBody存在:', !!data.teamBody)
-            console.log('[WebSocket] 🔍 - data.teamBody.team_json_body存在:', !!data.teamBody?.team_json_body)
+            // 存储当前记录ID
+            currentRecordId.value = recordId
+            console.log('[WebSocket] 💾 存储当前记录ID:', currentRecordId.value)
             
-            // 更新团队数据
-            if (data.teamBody && data.teamBody.team_json_body) {
+            // 更新团队数据 - 直接使用teamBody，因为它就是Agent_Team格式
+            if (finalTeamBody) {
                 console.log('[WebSocket] 🔄 开始更新团队数据流程')
-                console.log('[WebSocket] 📊 新的团队数据大小:', JSON.stringify(data.teamBody.team_json_body).length, '字符')
+                console.log('[WebSocket] 📊 团队数据结构类型:', typeof finalTeamBody)
+                console.log('[WebSocket] 📊 团队数据大小:', JSON.stringify(finalTeamBody).length, '字符')
                 
                 // 标记为非用户操作，避免触发变化追踪
                 console.log('[WebSocket] 🔒 设置撤销重做操作标记为true (避免触发变化追踪)')
@@ -746,14 +921,23 @@ function connectWebSocket() {
                 
                 try {
                     console.log('[WebSocket] 💾 开始深拷贝团队数据')
-                    teamData.value = JSON.parse(JSON.stringify(data.teamBody.team_json_body))
+                    // 直接使用teamBody，因为它就是Agent_Team格式的数据
+                    teamData.value = JSON.parse(JSON.stringify(finalTeamBody))
                     console.log('[WebSocket] ✅ 团队数据更新完成')
-                    console.log('[WebSocket] 📊 更新后的团队数据:', teamData.value)
+                    console.log('[WebSocket] 📊 更新后的团队数据结构:', {
+                        provider: teamData.value.provider,
+                        component_type: teamData.value.component_type,
+                        participantsCount: teamData.value.config?.participants?.length || 0
+                    })
                     
                     console.log('[WebSocket] 📸 重新保存数据快照作为新基准')
                     // 重新保存快照，将从后端获取的数据作为新的基准
                     saveOriginalSnapshot()
                     console.log('[WebSocket] ✅ 数据快照保存完成')
+                    
+                    // 同时更新previousStateSnapshot作为变化对比的基准
+                    previousStateSnapshot.value = JSON.parse(JSON.stringify(teamData.value))
+                    console.log('[WebSocket] 📸 更新previousStateSnapshot作为变化对比基准')
                     
                 } finally {
                     console.log('[WebSocket] 🔓 重置撤销重做操作标记为false')
