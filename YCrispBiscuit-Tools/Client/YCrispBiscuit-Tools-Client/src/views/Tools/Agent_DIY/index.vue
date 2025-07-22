@@ -26,7 +26,7 @@
                             @click="undo()" 
                             :disabled="!canUndo()" 
                             class="undo-btn"
-                            title="撤销 (Ctrl+Z)"
+                            :title="`撤销 (Ctrl+Z) - 可撤销${undoStack.length - 1}步`"
                         >
                             ↶ 撤销
                         </button>
@@ -34,10 +34,17 @@
                             @click="redo()" 
                             :disabled="!canRedo()" 
                             class="redo-btn"
-                            title="重做 (Ctrl+Shift+Z)"
+                            :title="`重做 (Ctrl+Shift+Z) - 可重做${redoStack.length}步`"
                         >
                             ↷ 重做
                         </button>
+                        <!--button 
+                            @click="console.log('[Debug] 撤销状态:', getUndoRedoDebugInfo())" 
+                            class="debug-btn"
+                            title="在控制台输出撤销状态调试信息"
+                        >
+                            🐛 调试
+                        </button-->
                     </div>
 
                     <!-- 变化追踪状态显示 -->
@@ -271,9 +278,17 @@ function undo() {
         })
         
         console.log(`[UndoRedo] ↶ 撤销操作 (撤销栈: ${undoStack.value.length}, 重做栈: ${redoStack.value.length})`)
+        
+        // 重要：撤销后需要保存到后端数据库
+        console.log('[UndoRedo] 💾 撤销操作完成，开始保存到后端数据库')
+        
         return true
     } finally {
         isUndoRedoOperation.value = false
+        
+        // 在finally块中触发自动保存，确保撤销后的状态被保存到后端
+        console.log('[UndoRedo] 🚀 触发自动保存（撤销操作）')
+        autoSave()
     }
 }
 
@@ -305,9 +320,17 @@ function redo() {
         })
         
         console.log(`[UndoRedo] ↷ 重做操作 (撤销栈: ${undoStack.value.length}, 重做栈: ${redoStack.value.length})`)
+        
+        // 重要：重做后需要保存到后端数据库
+        console.log('[UndoRedo] 💾 重做操作完成，开始保存到后端数据库')
+        
         return true
     } finally {
         isUndoRedoOperation.value = false
+        
+        // 在finally块中触发自动保存，确保重做后的状态被保存到后端
+        console.log('[UndoRedo] 🚀 触发自动保存（重做操作）')
+        autoSave()
     }
 }
 
@@ -318,6 +341,18 @@ function canUndo() {
 
 function canRedo() {
     return redoStack.value.length > 0
+}
+
+// 调试函数：获取撤销栈状态
+function getUndoRedoDebugInfo() {
+    return {
+        undoStackLength: undoStack.value.length,
+        redoStackLength: redoStack.value.length,
+        canUndo: canUndo(),
+        canRedo: canRedo(),
+        isUndoRedoOperation: isUndoRedoOperation.value,
+        currentDataSnapshot: teamData.value ? JSON.stringify(teamData.value).substring(0, 100) + '...' : 'null'
+    }
 }
 
 // 生成变化摘要
@@ -432,6 +467,44 @@ function resetChangeTracking() {
     saveOriginalSnapshot()
     operationLog.value = []
     console.log('[ChangeTracker] 🔄 重置变化追踪')
+}
+
+// 专门用于WebSocket数据同步的函数（不重置原始快照）
+function syncDataFromWebSocket(newData: any, operationType: string = 'websocket_sync') {
+    // 先保存当前状态到撤销栈（让用户可以撤销同步）
+    console.log('[WebSocket] 💾 保存当前状态到撤销栈（WebSocket同步前）')
+    saveToUndoStack()
+    
+    // 标记为非用户操作，避免触发自动保存
+    console.log('[WebSocket] 🔒 设置撤销重做操作标记为true (避免触发自动保存)')
+    isUndoRedoOperation.value = true
+    
+    try {
+        console.log('[WebSocket] 💾 开始同步数据')
+        // 直接使用新数据更新当前数据
+        teamData.value = JSON.parse(JSON.stringify(newData))
+        console.log('[WebSocket] ✅ 数据同步完成')
+        
+        // 添加同步操作记录到操作日志
+        const timestamp = new Date().toISOString()
+        operationLog.value.push({
+            timestamp,
+            fieldPath: 'system.websocket_sync',
+            newValue: '数据同步',
+            operationType: operationType
+        })
+        console.log('[WebSocket] 📝 记录同步操作到操作日志')
+        
+        // 更新previousStateSnapshot作为变化对比的基准（但不重置原始快照）
+        previousStateSnapshot.value = JSON.parse(JSON.stringify(teamData.value))
+        console.log('[WebSocket] 📸 更新previousStateSnapshot作为变化对比基准')
+        
+        console.log('[WebSocket] 🎉 数据同步完成！用户可以通过撤销功能回到同步前的状态')
+        
+    } finally {
+        console.log('[WebSocket] 🔓 重置撤销重做操作标记为false')
+        isUndoRedoOperation.value = false
+    }
 }
 
 // 键盘快捷键处理
@@ -812,9 +885,53 @@ function connectWebSocket() {
                 return
             }
             
-            // 检查是否是部署确认消息（包含content/originalContent字段）
-            if (processedData && (processedData.content || processedData.originalContent)) {
-                console.log('[WebSocket] ✅ 检测到部署确认消息')
+            // 检查是否是包含三个字段的消息（content/originalContent/teamBody）
+            if (processedData && (processedData.content !== undefined || processedData.originalContent !== undefined) && processedData.teamBody) {
+                console.log('[WebSocket] 🚀 检测到包含三个字段的消息：content + originalContent + teamBody')
+                console.log('[WebSocket] 📝 消息内容:', {
+                    hasContent: !!processedData.content,
+                    hasOriginalContent: !!processedData.originalContent,
+                    hasTeamBody: !!processedData.teamBody,
+                    additionalFields: Object.keys(processedData).filter(key => 
+                        !['content', 'originalContent', 'teamBody'].includes(key)
+                    )
+                })
+                
+                // 1. 首先处理状态指示器重置（如果当前正在保存状态）
+                if (isSaving.value || autoSaveTimer.value) {
+                    console.log('[WebSocket] 🔄 检测到保存状态，执行状态指示器重置')
+                    
+                    // 清理自动保存定时器
+                    if (autoSaveTimer.value) {
+                        console.log('[WebSocket] 🗑️ 清理自动保存定时器')
+                        clearTimeout(autoSaveTimer.value)
+                        autoSaveTimer.value = null
+                    }
+                    
+                    isSaving.value = false
+                    console.log('[WebSocket] 🔄 重置保存状态为false')
+                }
+                
+                // 2. 然后处理实时数据更新（使用teamBody覆盖当前数据）
+                console.log('[WebSocket] 🔄 开始实时数据更新流程')
+                console.log('[WebSocket] 📊 新teamBody数据结构检查:', {
+                    provider: processedData.teamBody.provider,
+                    component_type: processedData.teamBody.component_type,
+                    version: processedData.teamBody.version,
+                    hasConfig: !!processedData.teamBody.config,
+                    hasParticipants: !!processedData.teamBody.config?.participants
+                })
+                
+                // 使用新的同步函数，不重置原始快照
+                syncDataFromWebSocket(processedData.teamBody, 'realtime_update')
+                
+                console.log('[WebSocket] ✅ 三字段消息处理完成（状态重置 + 数据更新）')
+                return
+            }
+            
+            // 检查是否是仅包含部署确认字段的消息（content/originalContent但无teamBody）
+            if (processedData && (processedData.content !== undefined || processedData.originalContent !== undefined) && !processedData.teamBody) {
+                console.log('[WebSocket] ✅ 检测到纯部署确认消息（无teamBody）')
                 console.log('[WebSocket] 📝 确认消息内容:', {
                     content: processedData.content,
                     originalContent: processedData.originalContent
@@ -822,14 +939,14 @@ function connectWebSocket() {
                 
                 // 清理自动保存定时器
                 if (autoSaveTimer.value) {
-                    console.log('[WebSocket] 🗑️ 清理自动保存定时器 (部署确认)')
+                    console.log('[WebSocket] 🗑️ 清理自动保存定时器 (纯部署确认)')
                     clearTimeout(autoSaveTimer.value)
                     autoSaveTimer.value = null
                 }
                 
                 isSaving.value = false
-                console.log('[WebSocket] 🔄 重置保存状态为false (部署确认)')
-                console.log('[WebSocket] ✅ 部署确认处理完成')
+                console.log('[WebSocket] 🔄 重置保存状态为false (纯部署确认)')
+                console.log('[WebSocket] ✅ 纯部署确认处理完成')
                 return
             }
             
@@ -915,34 +1032,47 @@ function connectWebSocket() {
                 console.log('[WebSocket] 📊 团队数据结构类型:', typeof finalTeamBody)
                 console.log('[WebSocket] 📊 团队数据大小:', JSON.stringify(finalTeamBody).length, '字符')
                 
-                // 标记为非用户操作，避免触发变化追踪
-                console.log('[WebSocket] 🔒 设置撤销重做操作标记为true (避免触发变化追踪)')
-                isUndoRedoOperation.value = true
+                // 检查是否是初始加载（撤销栈为空或只有一个初始状态）
+                const isInitialLoad = undoStack.value.length <= 1
+                console.log('[WebSocket] � 是否为初始加载:', isInitialLoad)
                 
-                try {
-                    console.log('[WebSocket] 💾 开始深拷贝团队数据')
-                    // 直接使用teamBody，因为它就是Agent_Team格式的数据
-                    teamData.value = JSON.parse(JSON.stringify(finalTeamBody))
-                    console.log('[WebSocket] ✅ 团队数据更新完成')
-                    console.log('[WebSocket] 📊 更新后的团队数据结构:', {
-                        provider: teamData.value.provider,
-                        component_type: teamData.value.component_type,
-                        participantsCount: teamData.value.config?.participants?.length || 0
-                    })
+                if (isInitialLoad) {
+                    // 初始加载时，重置所有状态
+                    console.log('[WebSocket] � 初始加载，重置所有追踪状态')
                     
-                    console.log('[WebSocket] 📸 重新保存数据快照作为新基准')
-                    // 重新保存快照，将从后端获取的数据作为新的基准
-                    saveOriginalSnapshot()
-                    console.log('[WebSocket] ✅ 数据快照保存完成')
+                    // 标记为非用户操作，避免触发变化追踪
+                    console.log('[WebSocket] 🔒 设置撤销重做操作标记为true (避免触发变化追踪)')
+                    isUndoRedoOperation.value = true
                     
-                    // 同时更新previousStateSnapshot作为变化对比的基准
-                    previousStateSnapshot.value = JSON.parse(JSON.stringify(teamData.value))
-                    console.log('[WebSocket] 📸 更新previousStateSnapshot作为变化对比基准')
-                    
-                } finally {
-                    console.log('[WebSocket] 🔓 重置撤销重做操作标记为false')
-                    isUndoRedoOperation.value = false
+                    try {
+                        console.log('[WebSocket] 💾 开始深拷贝团队数据')
+                        teamData.value = JSON.parse(JSON.stringify(finalTeamBody))
+                        console.log('[WebSocket] ✅ 团队数据更新完成')
+                        
+                        console.log('[WebSocket] 📸 重新保存数据快照作为新基准（初始加载）')
+                        // 初始加载时重新保存快照
+                        saveOriginalSnapshot()
+                        console.log('[WebSocket] ✅ 数据快照保存完成')
+                        
+                        // 同时更新previousStateSnapshot作为变化对比的基准
+                        previousStateSnapshot.value = JSON.parse(JSON.stringify(teamData.value))
+                        console.log('[WebSocket] 📸 更新previousStateSnapshot作为变化对比基准')
+                        
+                    } finally {
+                        console.log('[WebSocket] 🔓 重置撤销重做操作标记为false')
+                        isUndoRedoOperation.value = false
+                    }
+                } else {
+                    // 非初始加载时，使用同步函数保持撤销历史
+                    console.log('[WebSocket] 🔄 非初始加载，使用同步函数保持撤销历史')
+                    syncDataFromWebSocket(finalTeamBody, 'websocket_load')
                 }
+                
+                console.log('[WebSocket] 📊 更新后的团队数据结构:', {
+                    provider: teamData.value.provider,
+                    component_type: teamData.value.component_type,
+                    participantsCount: teamData.value.config?.participants?.length || 0
+                })
             }
             
             console.log('[WebSocket] ========消息处理完成========')
@@ -995,6 +1125,7 @@ provide('undo', undo)
 provide('redo', redo)
 provide('canUndo', canUndo)
 provide('canRedo', canRedo)
+provide('getUndoRedoDebugInfo', getUndoRedoDebugInfo)
 
 // 向子组件提供 WebSocket 相关功能
 provide('isConnected', isConnected)
@@ -1136,7 +1267,7 @@ onUnmounted(() => {
     padding: 2px;
 }
 
-.undo-btn, .redo-btn {
+.undo-btn, .redo-btn, .debug-btn {
     padding: 6px 12px;
     background: transparent;
     color: #333;
@@ -1149,7 +1280,7 @@ onUnmounted(() => {
     min-width: 60px;
 }
 
-.undo-btn:hover:not(:disabled), .redo-btn:hover:not(:disabled) {
+.undo-btn:hover:not(:disabled), .redo-btn:hover:not(:disabled), .debug-btn:hover {
     background: #e0e0e0;
     transform: translateY(-1px);
 }
@@ -1176,6 +1307,16 @@ onUnmounted(() => {
 
 .redo-btn:not(:disabled):hover {
     background: #1976d2;
+}
+
+.debug-btn {
+    background: #ff9800;
+    color: white;
+    min-width: 50px;
+}
+
+.debug-btn:hover {
+    background: #f57c00;
 }
 
 /* 变化追踪状态 */
@@ -1371,6 +1512,17 @@ onUnmounted(() => {
 
 .change-type[data-type="data_change"] {
     background: #673ab7;
+}
+
+.change-type[data-type="realtime_update"] {
+    background: #e91e63;
+    animation: pulse-realtime 2s ease-in-out;
+}
+
+@keyframes pulse-realtime {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(233, 30, 99, 0.2); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0); }
 }
 
 .change-status {
