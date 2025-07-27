@@ -1,6 +1,6 @@
 # 🛠️ Yes!Neurosama!
 
-> 是！牛肉大人！
+> 是！牛肉sama！
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://www.java.com/)
@@ -11,9 +11,9 @@
 
 ## 📝 版本概述
 
-你问Minecraft版本？1.21fabric/forge开发中，后续会向低版本迭代，最低到1.19.2，不能再低了，因为再低的版本我自己都不玩，如有需求，请自己拉取源码自己适配！
+你问Minecraft版本？1.21fabric开发中，后续会向forge和低版本迭代，最低到1.19.2，不能再低了，因为再低的版本我自己都不玩，如有需求，请自己拉取源码自己适配！
 
-你问1.19.2那个Neuro21 Mod？那个雨我无瓜，你去问问原作者JimenezLi有没有后续更新意向吧，有一说一不更新了挺可惜的。
+你问1.19.2那个Neuro21 Mod？那个雨我无瓜，你去问问JimenezLi大佬有没有后续更新意向吧，有一说一不更新了挺可惜的。
 
 ## 🚀 快速开始
 
