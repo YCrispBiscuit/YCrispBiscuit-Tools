@@ -114,7 +114,7 @@ YCrispBiscuit-YesNeurosama-MinecraftMod/
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证，详情请查看 [LICENSE](LICENSE) 文件。
+本项目采用 CC0 许可证，详情请查看 [LICENSE](LICENSE) 文件。
 
 
 ## 👨‍💻 作者
