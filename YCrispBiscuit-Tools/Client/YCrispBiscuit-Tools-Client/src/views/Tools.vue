@@ -43,7 +43,7 @@ const router = useRouter();
 const tools = [
   {
     name: 'ACGN个人喜好表生成器',
-    desc: '这是一个为动漫游戏爱好者打造的个人喜好表生成器，可自定义数据库，支持图表下载。',
+    desc: '这是一个为动漫游戏爱好者打造的个人喜好表生成器，可自定义数据库，支持图表下载。未进行主题切换适配。',
     logo: new URL('@/assets/bilibili_blue.png', import.meta.url).href,
     action: () => {
       router.push('/Tools/ACGN_Personal_Preference_Table_Generator');
@@ -51,18 +51,18 @@ const tools = [
   },
   {
     name: 'Agent_DIY',
-    desc: '这是一个可视化的Agent DIY工具，仅作demo展示，因为本人暂未实现完整的Agent开发流程。',
+    desc: '这是一个可视化的Agent DIY工具，仅作demo展示，因为本人暂未实现完整的Agent开发流程。未进行主题切换适配。',
     logo: new URL('@/assets/Agent_DIY.png', import.meta.url).href,
     action: () => {
       router.push('/Tools/Agent_DIY');
     }
   },
   {
-    name: '示例工具',
-    desc: '这是一个示例工具的描述，可以自定义扩展。',
+    name: 'Matrix_Based_Chat_DIY',
+    desc: '下一个暂定目标，开发一套基于Matrix的即时通讯工具。需要主题切换适配。',
     //logo: new URL('@/assets/bilibili_black_00000.svg', import.meta.url).href,
     action: () => {
-
+      router.push('/Tools/Matrix_Based_Chat_DIY');
     }
   },
   {

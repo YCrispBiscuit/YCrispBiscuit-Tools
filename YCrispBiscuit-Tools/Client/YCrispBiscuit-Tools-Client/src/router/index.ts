@@ -58,6 +58,12 @@ const routes = [
     name: 'Agent_Node',
     component: () => import('../views/Tools/AgentNode/AgentNode.vue'),
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/Tools/Matrix_Based_Chat_DIY',
+    name: 'Matrix_Based_Chat_DIY',
+    component: () => import('../views/Tools/Matrix_Based_Chat_DIY'),
+    meta: { requiresAuth: false }
   }
 
 ]
