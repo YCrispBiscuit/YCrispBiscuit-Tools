@@ -64,12 +64,6 @@ const routes = [
     name: 'Matrix_Based_Chat_DIY',
     component: () => import('../views/Tools/Matrix_Based_Chat_DIY'),
     meta: { requiresAuth: false }
-  },
-  {
-    path: '/Tools/Matrix_Based_Chat_DIY/Login',
-    name: 'Matrix_Based_Chat_DIY_Login',
-    component: () => import('../views/Tools/Matrix_Based_Chat_DIY/Login'),
-    meta: { requiresAuth: false }
   }
 
 ]

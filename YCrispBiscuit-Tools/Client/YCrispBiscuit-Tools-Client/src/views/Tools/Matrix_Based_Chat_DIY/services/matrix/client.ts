@@ -22,8 +22,14 @@ class Matrix客户端服务类 {
    * @returns 基础客户端实例
    */
   创建基础客户端(服务器地址: string) {
-    console.log(`创建Matrix基础客户端，连接服务器: ${服务器地址}`)
-    this.基础客户端实例 = sdk.createClient({ baseUrl: 服务器地址 })
+    // 确保服务器地址有正确的协议前缀
+    let 完整服务器地址 = 服务器地址
+    if (!完整服务器地址.startsWith('http://') && !完整服务器地址.startsWith('https://')) {
+      完整服务器地址 = `https://${完整服务器地址}`
+    }
+    
+    console.log(`创建Matrix基础客户端，连接服务器: ${完整服务器地址}`)
+    this.基础客户端实例 = sdk.createClient({ baseUrl: 完整服务器地址 })
     return this.基础客户端实例
   }
 
@@ -34,15 +40,19 @@ class Matrix客户端服务类 {
    * @throws 如果登录失败则抛出详细错误信息
    */
   async 用户登录(登录配置: MatrixLoginConfig): Promise<MatrixUser> {
-    // 如果没有基础客户端，先创建一个
-    if (!this.基础客户端实例) {
-      this.创建基础客户端(登录配置.homeserver)
-    }
+    // 清理之前的客户端实例，确保完全重新开始
+    this.基础客户端实例 = null
+    this.已认证客户端实例 = null
+    
+    // 每次登录都重新创建基础客户端，确保使用正确的服务器地址
+    console.log(`准备登录到服务器: ${登录配置.homeserver}`)
+    this.创建基础客户端(登录配置.homeserver)
 
     // 生成完整的Matrix用户ID格式：@username:server.com
     const 完整用户ID = this.生成完整用户ID(登录配置.username, 登录配置.homeserver)
     
     console.log(`开始登录Matrix账户: ${完整用户ID}`)
+    console.log(`基础客户端baseUrl: ${this.基础客户端实例?.baseUrl}`)
 
     try {
       // 调用Matrix SDK的登录接口
@@ -59,11 +69,13 @@ class Matrix客户端服务类 {
 
       // 使用登录获得的访问令牌创建已认证的客户端
       this.已认证客户端实例 = sdk.createClient({
-        baseUrl: 登录配置.homeserver,
+        baseUrl: this.基础客户端实例.baseUrl,  // 使用基础客户端的相同地址
         accessToken: 登录结果.access_token,  // 这是关键：访问令牌
         userId: 登录结果.user_id,
         useAuthorizationHeader: true  // 使用Authorization头而不是查询参数
       })
+      
+      console.log(`已认证客户端创建成功, baseUrl: ${this.已认证客户端实例.baseUrl}`)
 
       // 返回用户信息
       return {
@@ -80,8 +92,8 @@ class Matrix客户端服务类 {
         throw new Error('用户名或密码错误，请重新输入')
       } else if (错误信息.includes('M_USER_DEACTIVATED')) {
         throw new Error('此账户已被停用，请联系管理员')
-      } else if (错误信息.includes('M_LIMIT_EXCEEDED')) {
-        throw new Error('登录尝试过于频繁，请稍后再试')
+      } else if (错误信息.includes('M_LIMIT_EXCEEDED') || 错误信息.includes('429') || 错误信息.includes('Too Many Requests')) {
+        throw new Error('登录尝试过于频繁，请等待30秒后再试')
       } else if (错误信息.includes('Network')) {
         throw new Error('网络连接失败，请检查网络设置或服务器地址')
       } else {

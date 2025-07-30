@@ -5,7 +5,7 @@
             <div class="form-group">
                 <label for="homeserver">Matrix 服务器地址</label>
                 <input id="homeserver" v-model="formData.homeserver" :disabled="isLoggingIn" type="url"
-                    placeholder="https://matrix.org" required class="form-input" />
+                    placeholder="https://chat.zy-jn.org.cn/" required class="form-input" />
             </div>
 
             <!-- 用户名 -->
@@ -63,7 +63,7 @@ const emit = defineEmits<{
 
 /** 表单数据 */
 const formData = reactive<MatrixLoginConfig>({
-    homeserver: 'https://matrix.org',
+    homeserver: 'https://chat.zy-jn.org.cn/',
     username: '',
     password: ''
 })

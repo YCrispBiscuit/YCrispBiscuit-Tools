@@ -22,6 +22,12 @@ import type { MatrixLoginConfig, MatrixUser } from '../../types'
 // ===== 组件引用 =====
 const loginFormRef = ref()
 
+// ===== 登录限制状态 =====
+const 上次登录尝试时间 = ref<number>(0)
+const 登录冷却时间 = 5 * 1000 // 30秒冷却时间
+const 最大重试次数 = 3
+let 当前重试次数 = 0
+
 // ===== 事件定义 =====
 const emit = defineEmits<{
   /** 登录成功事件，传递用户信息给父组件 */
@@ -37,11 +43,32 @@ const emit = defineEmits<{
  */
 const handleLoginAttempt = async (loginData: MatrixLoginConfig) => {
   console.log('开始处理用户登录请求...')
+  console.log('收到的登录数据:', JSON.stringify(loginData, null, 2))
+  
+  // 检查是否在冷却期内
+  const 当前时间 = Date.now()
+  const 距离上次尝试时间 = 当前时间 - 上次登录尝试时间.value
+  
+  if (距离上次尝试时间 < 登录冷却时间) {
+    const 剩余冷却时间 = Math.ceil((登录冷却时间 - 距离上次尝试时间) / 1000)
+    const errorMessage = `请等待 ${剩余冷却时间} 秒后再次尝试登录`
+    
+    if (loginFormRef.value) {
+      loginFormRef.value.resetLoginState(errorMessage)
+    }
+    return
+  }
+  
+  // 更新尝试时间
+  上次登录尝试时间.value = 当前时间
   
   try {
     // 第1步：用户认证
     console.log('步骤1: 进行用户认证...')
     const userInfo = await matrixClient.用户登录(loginData)
+    
+    // 登录成功，重置重试计数
+    当前重试次数 = 0
     
     // 第2步：初始化加密功能（可选，失败不影响基础功能）
     console.log('步骤2: 初始化端到端加密...')
@@ -59,8 +86,23 @@ const handleLoginAttempt = async (loginData: MatrixLoginConfig) => {
     // 登录失败处理
     console.error('❌ 登录失败:', loginError)
     
+    当前重试次数++
+    
+    // 构建错误信息
+    let errorMessage = loginError.message || '登录失败，请重试'
+    
+    // 如果是429错误，建议用户等待更长时间
+    if (errorMessage.includes('过于频繁') || errorMessage.includes('429') || errorMessage.includes('Too Many Requests')) {
+      errorMessage += `\n\n建议：请等待30秒后再次尝试`
+      // 如果达到最大重试次数，强制冷却
+      if (当前重试次数 >= 最大重试次数) {
+        errorMessage += `\n已达到最大重试次数(${最大重试次数})，将暂时限制登录`
+        // 延长冷却时间
+        上次登录尝试时间.value = 当前时间 + 登录冷却时间
+      }
+    }
+    
     // 将错误信息传递给登录表单显示
-    const errorMessage = loginError.message || '登录失败，请重试'
     if (loginFormRef.value) {
       loginFormRef.value.resetLoginState(errorMessage)
     }

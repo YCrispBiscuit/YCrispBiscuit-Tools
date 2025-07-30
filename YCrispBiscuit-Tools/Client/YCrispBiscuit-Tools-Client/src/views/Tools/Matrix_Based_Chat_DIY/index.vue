@@ -6,7 +6,7 @@
       @login-success="handleLoginSuccess" 
     />
     
-    <ChatPage 
+    <MainPage 
       v-else 
       :user-id="currentUser?.userId || ''"
       @logout="handleLogout" 
@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import LoginPage from './views/LoginPage'
-import ChatPage from './views/ChatPage'
+import MainPage from './views/MainPage'
 import type { MatrixUser } from './types'
 
 // ===== 应用级状态管理 =====
