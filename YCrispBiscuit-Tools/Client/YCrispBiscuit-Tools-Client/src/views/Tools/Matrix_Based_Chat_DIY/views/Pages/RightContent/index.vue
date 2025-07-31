@@ -1,18 +1,9 @@
 <template>
   <div class="right-content-container">
     <!-- 根据当前功能显示不同内容 -->
-    <div v-if="currentRoomId" class="content-area">
-      <!-- 聊天功能组件 -->
-      <Chat 
-        :room-name="roomName"
-        :room-id="currentRoomId"
-        :message="message"
-        :sending="sending"
-        :messages="messages"
-        :current-user-id="currentUserId"
-        @update:message="$emit('update:message', $event)"
-        @send-message="$emit('send-message')"
-      />
+    <div v-if="chatContext?.currentRoomId?.value" class="content-area">
+      <!-- 聊天功能组件 - 不传递props，使用inject -->
+      <Chat />
     </div>
 
     <!-- 未选择房间时的欢迎页面 -->
@@ -26,24 +17,11 @@
 </template>
 
 <script setup lang="ts">
+import { inject } from 'vue'
 import Chat from './Chat/index.vue'
-import type { MatrixMessage } from '../../../types'
 
-interface Props {
-  currentRoomId: string
-  roomName: string
-  message: string
-  sending: boolean
-  messages: MatrixMessage[]
-  currentUserId: string
-}
-
-defineProps<Props>()
-
-defineEmits<{
-  'update:message': [value: string]
-  'send-message': []
-}>()
+// 注入聊天上下文
+const chatContext = inject('chatContext') as any
 </script>
 
 <style scoped>

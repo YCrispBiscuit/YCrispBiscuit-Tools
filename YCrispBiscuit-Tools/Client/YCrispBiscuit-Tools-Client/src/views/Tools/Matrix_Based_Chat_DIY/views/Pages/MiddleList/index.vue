@@ -5,21 +5,34 @@
     
     <!-- 房间列表内容 -->
     <div class="list-content">
-      <slot name="room-list">
-        <!-- RoomList 组件会被插入这里 -->
-      </slot>
+      <RoomList 
+        :current-room-id="currentRoomId"
+        :rooms="rooms"
+        @select-room="$emit('select-room', $event)"
+        @join-room="$emit('join-room', $event)" 
+        @refresh-rooms="$emit('refresh-rooms')" 
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import Header from './Header'
+import RoomList from '../../../components/Room/RoomList'
 
 interface Props {
   userId: string
+  currentRoomId: string
+  rooms: any[] // 房间列表数据
 }
 
 defineProps<Props>()
+
+defineEmits<{
+  'select-room': [roomId: string]
+  'join-room': [roomIdOrAlias: string]
+  'refresh-rooms': []
+}>()
 </script>
 
 <style scoped>

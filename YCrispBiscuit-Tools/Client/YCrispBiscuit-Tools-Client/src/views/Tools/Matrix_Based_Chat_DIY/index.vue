@@ -16,8 +16,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import LoginPage from './views/LoginPage'
-import MainPage from './views/MainPage'
+import LoginPage from './views/LoginPage/index.vue'
+import MainPage from './views/MainPage/index.vue'
 import type { MatrixUser } from './types'
 
 // ===== 应用级状态管理 =====
@@ -37,9 +37,9 @@ const currentUser = ref<MatrixUser | null>(null)
 const handleLoginSuccess = (userInfo: MatrixUser) => {
   console.log('用户登录成功:', userInfo.userId)
   
-  // 更新应用状态
-  isLoggedIn.value = true
+  // 先设置用户信息，再设置登录状态，避免props更新导致的循环
   currentUser.value = userInfo
+  isLoggedIn.value = true
   
   console.log('已切换到聊天页面')
 }

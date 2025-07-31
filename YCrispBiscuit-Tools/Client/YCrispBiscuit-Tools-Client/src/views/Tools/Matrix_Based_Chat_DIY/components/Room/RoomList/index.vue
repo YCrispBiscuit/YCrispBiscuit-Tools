@@ -9,7 +9,7 @@
     
     <div class="rooms-container">
       <div 
-        v-for="room in rooms" 
+        v-for="room in props.rooms" 
         :key="room.roomId" 
         class="room-item"
         :class="{ active: currentRoomId === room.roomId }"
@@ -48,9 +48,11 @@ import type { MatrixRoom } from '../../../types'
 // Props
 interface Props {
   currentRoomId?: string
+  rooms: any[] // 接收外部传入的房间列表
 }
 const props = withDefaults(defineProps<Props>(), {
-  currentRoomId: ''
+  currentRoomId: '',
+  rooms: () => []
 })
 
 // Emits
@@ -61,7 +63,6 @@ const emit = defineEmits<{
 }>()
 
 // 状态
-const rooms = ref<MatrixRoom[]>([])
 const newRoomId = ref('')
 const loading = ref(false)
 const joining = ref(false)
@@ -97,16 +98,6 @@ const refreshRooms = () => {
 const formatTime = (timestamp: number) => {
   return new Date(timestamp).toLocaleString()
 }
-
-// 更新房间列表（父组件调用）
-const updateRooms = (newRooms: MatrixRoom[]) => {
-  rooms.value = newRooms
-}
-
-// 暴露方法给父组件
-defineExpose({
-  updateRooms
-})
 
 onMounted(() => {
   refreshRooms()

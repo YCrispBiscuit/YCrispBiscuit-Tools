@@ -64,8 +64,8 @@ const emit = defineEmits<{
 /** 表单数据 */
 const formData = reactive<MatrixLoginConfig>({
     homeserver: 'https://chat.zy-jn.org.cn/',
-    username: '',
-    password: ''
+    username: 'ycb',
+    password: '@Gyf20021109'
 })
 
 /** 登录状态 */

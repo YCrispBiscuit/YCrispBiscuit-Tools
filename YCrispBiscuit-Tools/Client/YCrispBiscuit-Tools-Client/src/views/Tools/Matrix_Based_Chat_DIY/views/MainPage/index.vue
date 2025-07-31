@@ -5,28 +5,31 @@
             <div class="function-sidebar" :style="{ width: functionSidebarWidth }">
                 <LeftList 
                     :user-initials="getUserInitials()"
+                    :current-function="currentFunction"
                     @logout="handleLogout"
+                    @function-change="handleFunctionChange"
                 />
             </div>
 
             <!-- 中间频道/功能区域组件 -->
-            <div class="channel-sidebar" :style="{ width: channelSidebarWidth }">
-                <MiddleList :user-id="props.userId">
-                    <template #room-list>
-                        <RoomList 
-                            ref="roomListRef" 
-                            :current-room-id="currentRoomId" 
-                            @select-room="handleSelectRoom"
-                            @join-room="handleJoinRoom" 
-                            @refresh-rooms="handleRefreshRooms" 
-                        />
-                    </template>
-                </MiddleList>
+            <div 
+                v-if="currentFunctionNeedsMiddleList" 
+                class="channel-sidebar" 
+                :style="{ width: channelSidebarWidth }"
+            >
+                <MiddleList 
+                    :user-id="props.userId"
+                    :current-room-id="currentRoomId"
+                    :rooms="rooms"
+                    @select-room="handleSelectRoom"
+                    @join-room="handleJoinRoom" 
+                    @refresh-rooms="handleRefreshRooms" 
+                />
             </div>
 
             <!-- 拖拽分隔条 (只在频道列表展开时显示) -->
             <div 
-                v-if="!isChannelSidebarCollapsed"
+                v-if="shouldShowMiddleList"
                 class="resizer" 
                 @mousedown="startResize($event, 'channel')"
                 title="拖拽调整频道区域宽度"
@@ -34,15 +37,7 @@
 
             <!-- 右侧主内容区域组件 -->
             <div class="main-chat-area">
-                <RightContent 
-                    :current-room-id="currentRoomId"
-                    :room-name="getCurrentRoomName()"
-                    v-model:message="newMessage"
-                    :sending="sending"
-                    :messages="currentRoomMessages"
-                    :current-user-id="props.userId"
-                    @send-message="handleSendMessage"
-                />
+                <WorkspaceManager />
             </div>
         </div>
 
@@ -71,11 +66,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, provide } from 'vue'
 import LeftList from '../Pages/LeftList/index.vue'
 import MiddleList from '../Pages/MiddleList/index.vue'
-import RightContent from '../Pages/RightContent/index.vue'
-import RoomList from '../../components/Room/RoomList/index.vue'
+import WorkspaceManager from '../Pages/WorkspaceManager'
 import { matrixClient } from '../../services/matrix/client'
 import { roomService } from '../../services/matrix/rooms'
 import { messageService } from '../../services/matrix/messages'
@@ -85,9 +79,6 @@ import type { MatrixMessage, MatrixRoom } from '../../types'
  * Chat页面组件
  * 负责聊天界面的展示和交互，需要在已登录状态下使用
  */
-
-// 组件引用
-const roomListRef = ref()
 
 // 状态管理 - 接收父级传递的用户信息
 const props = defineProps<{
@@ -107,7 +98,10 @@ const messages = ref<MatrixMessage[]>([])
 const rooms = ref<MatrixRoom[]>([])
 
 // Discord布局状态
-// const currentFunction = ref<'rooms' | 'calendar' | 'notes' | 'files'>('rooms')
+const currentFunction = ref<'rooms' | 'calendar' | 'notes' | 'files'>('rooms')
+
+// 定义哪些功能需要显示中间列表
+const functionsNeedingMiddleList = ['rooms'] // 只有聊天功能需要房间列表
 
 // 拖拽调整宽度相关状态
 const channelSidebarBaseWidth = ref(240) // 频道区域基础宽度
@@ -123,7 +117,21 @@ const functionSidebarWidth = computed(() => {
     return isFunctionSidebarCollapsed.value ? '0px' : '72px'
 })
 
+// 计算属性：是否当前功能需要中间列表
+const currentFunctionNeedsMiddleList = computed(() => {
+    return functionsNeedingMiddleList.includes(currentFunction.value)
+})
+
+// 计算属性：中间列表是否应该显示
+const shouldShowMiddleList = computed(() => {
+    return currentFunctionNeedsMiddleList.value && !isChannelSidebarCollapsed.value
+})
+
 const channelSidebarWidth = computed(() => {
+    // 如果当前功能不需要中间列表，强制宽度为0
+    if (!currentFunctionNeedsMiddleList.value) {
+        return '0px'
+    }
     return isChannelSidebarCollapsed.value ? '0px' : channelSidebarBaseWidth.value + 'px'
 })
 
@@ -131,6 +139,18 @@ const channelSidebarWidth = computed(() => {
 const currentRoomMessages = computed(() => {
     return messages.value.filter(msg => msg.roomId === currentRoomId.value)
 })
+
+// 处理功能切换
+const handleFunctionChange = (newFunction: 'rooms' | 'calendar' | 'notes' | 'files') => {
+    currentFunction.value = newFunction
+    console.log(`切换到功能: ${newFunction}`)
+    
+    // 如果切换到不需要中间列表的功能，自动收起频道侧边栏
+    if (!functionsNeedingMiddleList.includes(newFunction)) {
+        isChannelSidebarCollapsed.value = true
+        console.log('当前功能不需要频道列表，已自动收起')
+    }
+}
 
 // 处理登出
 const handleLogout = () => {
@@ -185,11 +205,6 @@ const handleJoinRoom = async (roomIdOrAlias: string) => {
 const handleRefreshRooms = () => {
     const newRooms = roomService.获取房间列表()
     rooms.value = newRooms
-
-    // 更新房间列表组件
-    if (roomListRef.value) {
-        roomListRef.value.updateRooms(newRooms)
-    }
 }
 
 // 处理发送消息
@@ -354,6 +369,10 @@ const getChannelTogglePosition = () => {
 }
 
 const shouldShowChannelToggle = () => {
+    // 当前功能不需要中间列表时，不显示绿色按钮
+    if (!currentFunctionNeedsMiddleList.value) {
+        return false
+    }
     // 当红绿都收起时，隐藏绿色按钮
     return !(isFunctionSidebarCollapsed.value && isChannelSidebarCollapsed.value)
 }
@@ -361,6 +380,20 @@ const shouldShowChannelToggle = () => {
 // 组件挂载时初始化
 onMounted(() => {
     initializeChat()
+})
+
+// 提供聊天上下文给所有子组件
+provide('chatContext', {
+    // 状态数据 - 直接提供refs，避免不必要的computed包装
+    currentRoomId: currentRoomId,
+    roomName: computed(() => getCurrentRoomName()),
+    message: newMessage,
+    sending: sending,
+    messages: currentRoomMessages,
+    currentUserId: computed(() => props.userId),
+    
+    // 方法
+    sendMessage: handleSendMessage
 })
 </script>
 
