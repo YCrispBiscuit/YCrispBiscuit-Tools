@@ -106,12 +106,18 @@ const resizeDirection = ref<'right' | 'bottom' | 'corner'>('corner')
 
 // 组件映射
 const componentMap = {
-  Chat: defineAsyncComponent(() => import('./Components/Chat.vue')),
-  FileManager: defineAsyncComponent(() => import('./Components/FileManager.vue')),
-  Calendar: defineAsyncComponent(() => import('./Components/Calendar.vue')),
-  Notes: defineAsyncComponent(() => import('./Components/Notes.vue')),
-  UserInfo: defineAsyncComponent(() => import('./Components/UserInfo.vue')),
-  NotificationPanel: defineAsyncComponent(() => import('./Components/NotificationPanel.vue')),
+
+    Chat: defineAsyncComponent(() => import('../RightContent/Chat/index.vue')),
+  
+  UserInfo: defineAsyncComponent(() => import('../RightContent/UserInfo/index.vue')),
+  FileManager: defineAsyncComponent(() => import('../RightContent/FileManager/index.vue')),
+  Calendar: defineAsyncComponent(() => import('../RightContent/Calendar/index.vue')),
+  Notes: defineAsyncComponent(() => import('../RightContent/Notes/index.vue')),
+
+
+  
+  
+  
 }
 
 // 计算样式

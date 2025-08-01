@@ -46,7 +46,7 @@ class 消息服务类 {
    * @param 房间ID - 要获取消息的房间ID
    * @returns 消息数组，按时间顺序排列
    */
-  获取房间历史消息(房间ID: string): MatrixMessage[] {
+  async 获取房间历史消息(房间ID: string): Promise<MatrixMessage[]> {
     const 客户端实例 = matrixClient.getAuthedClient()
     if (!客户端实例) {
       console.warn('Matrix客户端未初始化，无法获取历史消息')
@@ -65,31 +65,87 @@ class 消息服务类 {
       const 时间线 = 房间对象.getLiveTimeline()
       const 所有事件 = 时间线.getEvents()
 
-      // 过滤出消息事件并转换为我们的消息格式
-      const 历史消息列表 = 所有事件
-        .filter((事件: any) => 事件.getType() === 'm.room.message') // 只要消息事件
-        .map((消息事件: any) => {
-          // 检测消息是否加密
+      // 过滤出消息事件（包括加密和非加密消息）
+      const 消息事件列表 = 所有事件.filter((事件: any) => {
+        const 事件类型 = 事件.getType()
+        // 包含普通消息和加密消息
+        return 事件类型 === 'm.room.message' || 事件类型 === 'm.room.encrypted'
+      })
+
+      // 使用 Promise.all 处理异步消息解析
+      const 历史消息列表 = await Promise.all(
+        消息事件列表.map(async (消息事件: any) => {
+          const 事件类型 = 消息事件.getType()
           let 是否加密 = false
-          try {
-            是否加密 = 消息事件.isEncrypted && 消息事件.isEncrypted()
-          } catch (检测错误) {
-            // 兼容性检测：如果isEncrypted方法不存在，通过事件类型判断
-            是否加密 = 消息事件.getType() === 'm.room.encrypted'
+          let 消息内容 = ''
+          
+          // 处理加密消息
+          if (事件类型 === 'm.room.encrypted') {
+            是否加密 = true
+            // 尝试获取解密后的内容
+            try {
+              // 检查消息是否已经被解密
+              if (消息事件.isDecrypted && 消息事件.isDecrypted()) {
+                // 消息已解密，获取明文内容
+                const 解密内容 = 消息事件.getContent()
+                消息内容 = 解密内容.body || '[已解密但无内容]'
+                console.log(`房间 ${房间ID} 消息已解密:`, 解密内容.body)
+              } else {
+                // 消息未解密，尝试手动解密
+                console.log(`房间 ${房间ID} 消息未解密，尝试手动解密...`)
+                
+                // 获取加密原始内容
+                const 原始内容 = 消息事件.getWireContent()
+                console.log(`房间 ${房间ID} 加密消息原始内容:`, 原始内容)
+                
+                // 尝试通过crypto引擎解密
+                const 客户端加密引擎 = 客户端实例.getCrypto()
+                if (客户端加密引擎) {
+                  try {
+                    // 使用加密引擎解密事件
+                    await 客户端加密引擎.decryptEvent(消息事件)
+                    // 解密成功后重新获取内容
+                    const 解密后内容 = 消息事件.getContent()
+                    消息内容 = 解密后内容.body || '[解密成功但无内容]'
+                    console.log(`房间 ${房间ID} 手动解密成功:`, 解密后内容.body)
+                  } catch (手动解密错误) {
+                    console.log(`房间 ${房间ID} 手动解密失败:`, 手动解密错误)
+                    消息内容 = '[加密消息 - 无法解密，可能缺少密钥]'
+                  }
+                } else {
+                  console.log(`房间 ${房间ID} 加密引擎未初始化，无法解密消息`)
+                  消息内容 = '[加密引擎未初始化 - 无法解密]'
+                }
+              }
+            } catch (解密错误) {
+              console.warn(`房间 ${房间ID} 加密消息处理失败:`, 解密错误)
+              消息内容 = '[无法解密的消息 - 可能缺少密钥]'
+            }
+          } else {
+            // 处理普通消息
+            try {
+              是否加密 = 消息事件.isEncrypted && 消息事件.isEncrypted()
+            } catch (检测错误) {
+              是否加密 = false
+            }
+            消息内容 = 消息事件.getContent().body || '[空消息]'
           }
 
           // 构造标准化的消息对象
           return {
             eventId: 消息事件.getId(),
             sender: 消息事件.getSender(),
-            content: 消息事件.getContent().body,
+            content: 消息内容,
             roomId: 房间ID,
             timestamp: 消息事件.getTs(),
             encrypted: 是否加密,
             messageType: this.获取消息类型(消息事件.getContent())
           }
         })
-        .sort((消息A: MatrixMessage, 消息B: MatrixMessage) => 消息A.timestamp - 消息B.timestamp) // 按时间排序
+      )
+
+      // 按时间排序
+      历史消息列表.sort((消息A: MatrixMessage, 消息B: MatrixMessage) => 消息A.timestamp - 消息B.timestamp)
 
       console.log(`成功获取房间 ${房间ID} 的 ${历史消息列表.length} 条历史消息`)
       return 历史消息列表
@@ -132,31 +188,57 @@ class 消息服务类 {
 
     // 监听Room.timeline事件，这是Matrix中新消息到达的事件
     客户端实例.on("Room.timeline" as any, (新消息事件: any, 所属房间: any) => {
-      // 只处理消息类型的事件
-      if (新消息事件.getType() === "m.room.message") {
-        const 消息内容 = 新消息事件.getContent()
-        
-        // 检测是否为加密消息
+      const 事件类型 = 新消息事件.getType()
+      // 处理消息类型的事件（包括加密和非加密）
+      if (事件类型 === "m.room.message" || 事件类型 === "m.room.encrypted") {
         let 是否加密消息 = false
-        try {
-          是否加密消息 = 新消息事件.isEncrypted && 新消息事件.isEncrypted()
-        } catch (检测异常) {
-          // 兼容性处理
-          是否加密消息 = 新消息事件.getType() === 'm.room.encrypted'
+        let 消息内容文本 = ''
+        
+        // 处理加密消息
+        if (事件类型 === "m.room.encrypted") {
+          是否加密消息 = true
+          try {
+            // 获取原始内容
+            const 原始内容 = 新消息事件.getContent()
+            console.log(`实时加密消息原始内容:`, 原始内容)
+            
+            // 尝试获取解密后的明文内容
+            if (新消息事件.getDecryptedContent) {
+              const 解密内容 = 新消息事件.getDecryptedContent()
+              消息内容文本 = 解密内容.body || '[实时已解密但无内容]'
+              console.log(`实时消息解密成功:`, 解密内容)
+            } else if (原始内容.body) {
+              消息内容文本 = 原始内容.body
+            } else {
+              消息内容文本 = '[实时加密消息 - 等待解密或需要密钥]'
+            }
+          } catch (解密错误) {
+            console.warn(`实时加密消息处理失败:`, 解密错误)
+            消息内容文本 = '[无法解密的实时消息 - 可能缺少密钥]'
+          }
+        } else {
+          // 处理普通消息
+          try {
+            是否加密消息 = 新消息事件.isEncrypted && 新消息事件.isEncrypted()
+          } catch (检测异常) {
+            是否加密消息 = false
+          }
+          const 消息内容 = 新消息事件.getContent()
+          消息内容文本 = 消息内容.body || '[空实时消息]'
         }
 
         // 构造标准化消息对象
         const 标准化消息对象: MatrixMessage = {
           eventId: 新消息事件.getId(),
           sender: 新消息事件.getSender(),
-          content: 消息内容.body,
+          content: 消息内容文本,
           roomId: 所属房间.roomId,
           timestamp: 新消息事件.getTs(),
           encrypted: 是否加密消息,
-          messageType: this.获取消息类型(消息内容)
+          messageType: this.获取消息类型(新消息事件.getContent())
         }
 
-        console.log(`收到新消息来自房间 ${所属房间.roomId}: ${消息内容.body}`)
+        console.log(`收到新消息来自房间 ${所属房间.roomId}: ${消息内容文本}`)
         
         // 调用回调函数通知上层
         消息回调函数(标准化消息对象)

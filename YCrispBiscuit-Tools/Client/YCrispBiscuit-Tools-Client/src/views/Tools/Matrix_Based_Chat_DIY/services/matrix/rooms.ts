@@ -25,14 +25,26 @@ class 房间服务类 {
     
     // 转换为我们的标准房间格式
     const 标准化房间列表 = 原始房间列表.map((原始房间对象: any) => {
-      // 检测房间是否启用了端到端加密
+      // 检测房间是否启用了端到端加密 (E2EE)
       let 是否加密房间 = false
       try {
-        // 尝试使用hasEncryptionStateEvent方法检测
-        是否加密房间 = 原始房间对象.hasEncryptionStateEvent && 原始房间对象.hasEncryptionStateEvent()
+        // 只检查房间状态中是否有端到端加密配置
+        const 端到端加密事件 = 原始房间对象.currentState?.getStateEvents('m.room.encryption', '')
+        if (端到端加密事件 && 端到端加密事件.getContent()) {
+          const 加密配置 = 端到端加密事件.getContent()
+          // 检查是否有有效的端到端加密算法（如 m.megolm.v1.aes-sha2）
+          if (加密配置.algorithm && 加密配置.algorithm.includes('megolm')) {
+            是否加密房间 = true
+            console.log(`房间 ${原始房间对象.roomId} 启用端到端加密，算法: ${加密配置.algorithm}`)
+          }
+        }
+        
+        if (!是否加密房间) {
+          console.log(`房间 ${原始房间对象.roomId} 未启用端到端加密（使用传输加密）`)
+        }
       } catch (检测异常) {
-        // 如果上述方法不存在，尝试其他方式检测
-        是否加密房间 = 原始房间对象.getEncryptionTargetMembers ? true : false
+        console.warn(`检测房间 ${原始房间对象.roomId} 端到端加密状态失败:`, 检测异常)
+        是否加密房间 = false
       }
 
       // 获取房间主题

@@ -34,6 +34,19 @@ class Matrix客户端服务类 {
   }
 
   /**
+   * 为用户生成唯一的设备ID
+   * 基于用户ID生成一致的设备ID，确保同一用户每次登录都使用相同设备ID
+   * @param userId - Matrix用户ID，如 @user:server.com
+   * @returns 该用户的唯一设备ID
+   */
+  private 生成用户设备ID(userId: string): string {
+    // 提取用户名部分，去掉@和服务器部分
+    const 用户名 = userId.split(':')[0].replace('@', '')
+    // 生成格式：LingJing_用户名_CLIENT
+    return `LingJing_${用户名}_CLIENT`
+  }
+
+  /**
    * 用户登录到Matrix服务器
    * @param 登录配置 - 包含服务器地址、用户名、密码的配置对象
    * @returns 登录成功的用户信息
@@ -43,6 +56,31 @@ class Matrix客户端服务类 {
     // 清理之前的客户端实例，确保完全重新开始
     this.基础客户端实例 = null
     this.已认证客户端实例 = null
+    
+    // 🧹 清除浏览器中的Matrix相关存储，确保完全重新开始
+    try {
+      // 清除localStorage中的Matrix数据
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i)
+        if (key && (key.includes('matrix') || key.includes('crypto') || key.includes('device'))) {
+          localStorage.removeItem(key)
+          console.log(`清除localStorage: ${key}`)
+        }
+      }
+      
+      // 清除sessionStorage中的Matrix数据
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i)
+        if (key && (key.includes('matrix') || key.includes('crypto') || key.includes('device'))) {
+          sessionStorage.removeItem(key)
+          console.log(`清除sessionStorage: ${key}`)
+        }
+      }
+      
+      console.log('✅ 浏览器存储清理完成')
+    } catch (清理错误) {
+      console.warn('清理浏览器存储时出错:', 清理错误)
+    }
     
     // 每次登录都重新创建基础客户端，确保使用正确的服务器地址
     console.log(`准备登录到服务器: ${登录配置.homeserver}`)
@@ -55,6 +93,10 @@ class Matrix客户端服务类 {
     console.log(`基础客户端baseUrl: ${this.基础客户端实例?.baseUrl}`)
 
     try {
+      // 🔑 为每个用户生成唯一的设备ID
+      const 用户设备ID = this.生成用户设备ID(完整用户ID)
+      const 设备显示名 = `LingJing Matrix 客户端 - ${登录配置.username}`
+      
       // 调用Matrix SDK的登录接口
       const 登录结果 = await this.基础客户端实例.loginRequest({
         type: "m.login.password",  // 使用密码登录方式
@@ -62,20 +104,25 @@ class Matrix客户端服务类 {
           type: "m.id.user",
           user: 完整用户ID
         },
-        password: 登录配置.password
+        password: 登录配置.password,
+        device_id: 用户设备ID, // 🔑 每个用户独有的设备ID
+        initial_device_display_name: 设备显示名 // 🔑 个性化显示名
       })
 
       console.log(`登录成功! 用户ID: ${登录结果.user_id}`)
+      console.log(`设备ID: ${登录结果.device_id}`)
 
       // 使用登录获得的访问令牌创建已认证的客户端
       this.已认证客户端实例 = sdk.createClient({
         baseUrl: this.基础客户端实例.baseUrl,  // 使用基础客户端的相同地址
         accessToken: 登录结果.access_token,  // 这是关键：访问令牌
         userId: 登录结果.user_id,
+        deviceId: 登录结果.device_id, // 传递设备ID
         useAuthorizationHeader: true  // 使用Authorization头而不是查询参数
       })
       
       console.log(`已认证客户端创建成功, baseUrl: ${this.已认证客户端实例.baseUrl}`)
+      console.log(`客户端设备ID: ${this.已认证客户端实例.getDeviceId()}`)
 
       // 返回用户信息
       return {
@@ -116,25 +163,68 @@ class Matrix客户端服务类 {
     console.log('开始初始化Matrix端到端加密功能...')
 
     try {
-      // 尝试使用新版本的加密初始化方法
-      if (typeof this.已认证客户端实例.initCrypto === 'function') {
-        await this.已认证客户端实例.initCrypto()
-        console.log("✅ 端到端加密初始化成功 (使用 initCrypto)")
-      } 
-      // 如果上面的方法不存在，尝试Rust版本的加密
-      else if (typeof this.已认证客户端实例.initRustCrypto === 'function') {
+      // 尝试使用Rust版本的加密（推荐，性能更好）
+      if (typeof this.已认证客户端实例.initRustCrypto === 'function') {
         await this.已认证客户端实例.initRustCrypto()
         console.log("✅ 端到端加密初始化成功 (使用 initRustCrypto)")
+      } 
+      // 回退到老版本的加密初始化
+      else if (typeof this.已认证客户端实例.initCrypto === 'function') {
+        await this.已认证客户端实例.initCrypto()
+        console.log("✅ 端到端加密初始化成功 (使用 initCrypto)")
       } 
       // 如果都没有，说明当前SDK版本不支持加密
       else {
         console.log("⚠️ 当前Matrix SDK版本不支持加密功能，将使用基础模式")
         console.log("   在基础模式下可以发送和接收明文消息，但无法处理加密房间")
+        return
       }
+
+      // 加密初始化成功后，尝试启用密钥备份恢复
+      this.初始化密钥备份()
+      
     } catch (加密初始化错误: any) {
       const 错误详情 = 加密初始化错误.message || 加密初始化错误.toString()
       console.warn("⚠️ 加密初始化失败，继续使用非加密模式:", 错误详情)
       console.warn("   这意味着您可能无法在启用了端到端加密的房间中发送消息")
+    }
+  }
+
+  /**
+   * 初始化密钥备份和恢复
+   */
+  async 初始化密钥备份(): Promise<void> {
+    if (!this.已认证客户端实例) {
+      return
+    }
+
+    try {
+      console.log('🔑 检查并尝试恢复密钥备份...')
+      
+      // 检查是否有可用的密钥备份
+      const 备份信息 = await this.已认证客户端实例.getKeyBackupVersion()
+      
+      if (备份信息) {
+        console.log('🔑 发现密钥备份版本:', 备份信息.version)
+        
+        // 尝试信任并恢复备份
+        try {
+          await this.已认证客户端实例.trustKeyBackupVersion(备份信息)
+          const 恢复结果 = await this.已认证客户端实例.restoreKeyBackupWithCache()
+          
+          if (恢复结果&& 恢复结果.imported > 0) {
+            console.log(`🔑 成功恢复 ${恢复结果.imported} 个密钥`)
+          } else {
+            console.log('🔑 没有新的密钥需要恢复')
+          }
+        } catch (恢复错误) {
+          console.log('🔑 密钥备份恢复失败:', 恢复错误)
+        }
+      } else {
+        console.log('🔑 没有发现密钥备份')
+      }
+    } catch (错误) {
+      console.log('🔑 密钥备份检查失败:', 错误)
     }
   }
 

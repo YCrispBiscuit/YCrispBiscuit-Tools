@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@matrix-org/matrix-sdk-crypto-wasm": "^15.1.0",
     "@vicons/fa": "^0.13.0",
     "@vicons/ionicons5": "^0.13.0",
     "@vue-flow/core": "^1.45.0",

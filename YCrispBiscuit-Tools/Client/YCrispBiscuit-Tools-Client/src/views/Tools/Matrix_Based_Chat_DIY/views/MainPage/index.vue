@@ -62,6 +62,9 @@
                 <span>{{ isChannelSidebarCollapsed ? '▶' : '◀' }}</span>
             </div>
         </div>
+
+        <!-- 设备验证弹窗 -->
+        <DeviceVerification ref="deviceVerificationRef" />
     </div>
 </template>
 
@@ -70,6 +73,7 @@ import { ref, computed, onMounted, provide } from 'vue'
 import LeftList from '../Pages/LeftList/index.vue'
 import MiddleList from '../Pages/MiddleList/index.vue'
 import WorkspaceManager from '../Pages/WorkspaceManager'
+import DeviceVerification from '../../components/DeviceVerification/index.vue'
 import { matrixClient } from '../../services/matrix/client'
 import { roomService } from '../../services/matrix/rooms'
 import { messageService } from '../../services/matrix/messages'
@@ -96,6 +100,9 @@ const newMessage = ref('')
 const sending = ref(false)
 const messages = ref<MatrixMessage[]>([])
 const rooms = ref<MatrixRoom[]>([])
+
+// 设备验证弹窗组件引用
+const deviceVerificationRef = ref<InstanceType<typeof DeviceVerification> | null>(null)
 
 // Discord布局状态
 const currentFunction = ref<'rooms' | 'calendar' | 'notes' | 'files'>('rooms')
@@ -158,6 +165,14 @@ const handleLogout = () => {
     emit('logout')
 }
 
+// 打开设备验证弹窗
+const openDeviceVerification = () => {
+    console.log('打开设备验证弹窗')
+    if (deviceVerificationRef.value) {
+        deviceVerificationRef.value.openVerification()
+    }
+}
+
 // 初始化聊天页面
 const initializeChat = async () => {
     try {
@@ -176,11 +191,11 @@ const initializeChat = async () => {
 }
 
 // 处理选择房间
-const handleSelectRoom = (roomId: string) => {
+const handleSelectRoom = async (roomId: string) => {
     currentRoomId.value = roomId
 
     // 加载房间历史消息
-    const roomMessages = messageService.获取房间历史消息(roomId)
+    const roomMessages = await messageService.获取房间历史消息(roomId)
 
     // 清除当前房间的旧消息，添加历史消息
     messages.value = messages.value.filter(msg => msg.roomId !== roomId)
@@ -380,6 +395,23 @@ const shouldShowChannelToggle = () => {
 // 组件挂载时初始化
 onMounted(() => {
     initializeChat()
+    
+    // 添加快捷键测试设备验证弹窗（Ctrl+V）
+    const handleKeydown = (event: KeyboardEvent) => {
+        if (event.ctrlKey && event.key === 'v') {
+            event.preventDefault()
+            openDeviceVerification()
+        }
+    }
+    document.addEventListener('keydown', handleKeydown)
+    
+    // 清理函数
+    const cleanup = () => {
+        document.removeEventListener('keydown', handleKeydown)
+    }
+    
+    // 返回清理函数给onUnmounted使用
+    return cleanup
 })
 
 // 提供聊天上下文给所有子组件
