@@ -3,14 +3,17 @@
     <div 
       class="function-item active"
       title="频道列表"
+      @click="emit('function-change', 'rooms')"
     >
       <span class="function-icon">💬</span>
     </div>
+    
   </div>
 </template>
 
 <script setup lang="ts">
 // 功能列表组件 - 负责显示左侧的功能按钮列表
+const emit = defineEmits(['function-change'])
 </script>
 
 <style scoped>

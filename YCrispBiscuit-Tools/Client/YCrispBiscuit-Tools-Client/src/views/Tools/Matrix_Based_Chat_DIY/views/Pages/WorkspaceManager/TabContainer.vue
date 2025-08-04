@@ -70,7 +70,7 @@ import type { TabItem } from './types'
 const componentMap = {
   Chat: defineAsyncComponent(() => import('../RightContent/Chat/index.vue')),
   
-  UserInfo: defineAsyncComponent(() => import('../RightContent/UserInfo/index.vue')),
+  
   FileManager: defineAsyncComponent(() => import('../RightContent/FileManager/index.vue')),
   Calendar: defineAsyncComponent(() => import('../RightContent/Calendar/index.vue')),
   Notes: defineAsyncComponent(() => import('../RightContent/Notes/index.vue')),

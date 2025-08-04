@@ -1,213 +1,169 @@
 <template>
-  <div class="user-info-panel">
-    <div class="panel-header">
-      <h3>用户信息</h3>
+  <div class="discord-user-card">
+    <div class="user-card-main">
+      <div class="user-avatar-large">
+        <img v-if="avatarUrl" :src="avatarUrl" class="avatar-img" alt="avatar" />
+        <img v-else  class="avatar-img" alt="default avatar" />
+      </div>
+      <div class="user-info-block">
+        <div class="user-display">{{ displayName }}</div>
+        <div class="user-id">{{ userId }}</div>
+        <div class="user-status online">在线</div>
+        <div class="user-stats-row">
+          <div class="stat-item">
+            <span class="stat-label">房间数</span>
+            <span class="stat-value">{{ roomCount }}</span>
+          </div>
+          
+        </div>
+      </div>
     </div>
-    
-    <div class="user-details">
-      <div class="user-avatar">
-        <div class="avatar-placeholder">
-          {{ userInitials }}
-        </div>
-      </div>
-      
-      <div class="user-basic-info">
-        <h4 class="user-id">{{ currentUserId }}</h4>
-        <p class="user-status">在线</p>
-      </div>
-      
-      <div class="user-stats">
-        <div class="stat-item">
-          <span class="stat-label">已加入房间</span>
-          <span class="stat-value">{{ roomCount }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">发送消息</span>
-          <span class="stat-value">{{ messageCount }}</span>
-        </div>
-      </div>
-      
-      <div class="user-actions">
-        <button class="action-btn" @click="editProfile">编辑资料</button>
-        <button class="action-btn secondary" @click="changeStatus">更改状态</button>
-        <button class="action-btn danger" @click="logout">登出</button>
-      </div>
+    <div class="user-actions-bar">
+      <button class="logout-btn" @click="logout">退出登录</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, watchEffect, onMounted } from 'vue'
+import { roomService } from '../../../../services/matrix/rooms'
 
-// 注入聊天上下文
+
 const chatContext = inject('chatContext') as any
 
-// 本地状态
+const userId = computed(() => chatContext?.currentUserId?.value || '')
+const displayName = computed(() => chatContext?.currentUser?.displayName || userId.value)
+const avatarUrl = computed(() => chatContext?.currentUser?.avatarUrl || '')
 const roomCount = ref(0)
-const messageCount = ref(0)
 
-// 从上下文获取用户信息
-const currentUserId = computed(() => chatContext?.currentUserId?.value || '')
 
-// 计算用户首字母
-const userInitials = computed(() => {
-  const userId = currentUserId.value
-  if (!userId) return '?'
-  const name = userId.split(':')[0].replace('@', '')
-  return name.charAt(0).toUpperCase()
+function getRoomsRaw() {
+  let rooms = chatContext?.rooms
+  if (!rooms) return []
+  // 兼容 ref
+  if (rooms.value) rooms = rooms.value
+  // 兼容 reactive 对象
+  if (Array.isArray(rooms)) return rooms
+  if (typeof rooms === 'object') return Object.values(rooms)
+  return []
+}
+
+function updateStats() {
+  const roomsArr = roomService.获取房间列表()
+  roomCount.value = roomsArr.length
+}
+
+onMounted(updateStats)
+watchEffect(() => {
+  updateStats()
 })
 
-// 方法
-const editProfile = () => {
-  alert('编辑资料功能待实现')
-}
-
-const changeStatus = () => {
-  alert('更改状态功能待实现')
-}
-
 const logout = () => {
-  if (chatContext?.logout) {
-    chatContext.logout()
-  }
+  if (chatContext?.logout) chatContext.logout()
 }
 </script>
 
 <style scoped>
-.user-info-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+.discord-user-card {
   background: #2f3136;
   color: #dcddde;
-}
-
-.panel-header {
-  padding: 16px;
-  border-bottom: 1px solid #40444b;
-  background: #36393f;
-}
-
-.panel-header h3 {
-  margin: 0;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.user-details {
-  flex: 1;
-  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px 0 #00000033;
+  max-width: 1020px;
+  margin: 48px auto 0 auto;
+  padding: 40px 40px 32px 40px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  align-items: stretch;
 }
-
-.user-avatar {
-  width: 80px;
-  height: 80px;
-}
-
-.avatar-placeholder {
+.user-card-main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 32px;
   width: 100%;
-  height: 100%;
-  background: #5865f2;
+}
+.user-avatar-large {
+  width: 112px;
+  height: 112px;
   border-radius: 50%;
+  background: #23272a;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
+  box-shadow: 0 2px 12px #00000033;
+  flex-shrink: 0;
 }
-
-.user-basic-info {
-  text-align: center;
-}
-
-.user-id {
-  margin: 0 0 8px 0;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.user-status {
-  margin: 0;
-  color: #43b581;
-  font-size: 14px;
-}
-
-.user-stats {
+.avatar-img {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.user-info-block {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  justify-content: flex-start;
+  margin-top: 8px;
 }
-
+.user-display {
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.user-id {
+  font-size: 15px;
+  color: #96989d;
+  margin-bottom: 2px;
+}
+.user-status {
+  font-size: 14px;
+  color: #43b581;
+  margin-bottom: 10px;
+}
+.user-stats-row {
+  display: flex;
+  gap: 40px;
+  margin-top: 12px;
+}
 .stat-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  background: #40444b;
-  border-radius: 6px;
-}
-
-.stat-label {
-  color: #b9bbbe;
+  flex-direction: column;
+  align-items: flex-start;
   font-size: 14px;
 }
-
+.stat-label {
+  color: #96989d;
+  margin-bottom: 2px;
+}
 .stat-value {
   color: #fff;
-  font-weight: 600;
-  font-size: 16px;
+  font-weight: bold;
+  font-size: 18px;
 }
-
-.user-actions {
+.user-actions-bar {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: auto;
+  justify-content: flex-end;
+  margin-top: 32px;
 }
-
-.action-btn {
-  padding: 10px 16px;
+.logout-btn {
+  padding: 12px 40px;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.2s ease;
-}
-
-.action-btn {
-  background: #5865f2;
-  color: white;
-}
-
-.action-btn:hover {
-  background: #4752c4;
-}
-
-.action-btn.secondary {
-  background: #4f545c;
-  color: #dcddde;
-}
-
-.action-btn.secondary:hover {
-  background: #5d6269;
-}
-
-.action-btn.danger {
+  border-radius: 10px;
   background: #ed4245;
-  color: white;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px #00000022;
 }
-
-.action-btn.danger:hover {
-  background: #c73e41;
+.logout-btn:hover {
+  background: #c23e41;
 }
 </style>

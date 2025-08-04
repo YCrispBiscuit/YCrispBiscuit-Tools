@@ -9,7 +9,7 @@
       
       <div class="drawer-body">
         <div class="function-category">
-          <h4>沟通工具</h4>
+          <h4>IM即时通信</h4>
           <div class="function-list">
             <div
               v-for="func in communicationFunctions"
@@ -27,7 +27,7 @@
         </div>
 
         <div class="function-category">
-          <h4>生产力工具</h4>
+          <h4>工具</h4>
           <div class="function-list">
             <div
               v-for="func in productivityFunctions"
@@ -45,7 +45,7 @@
         </div>
 
         <div class="function-category">
-          <h4>系统工具</h4>
+          <h4>系统</h4>
           <div class="function-list">
             <div
               v-for="func in systemFunctions"

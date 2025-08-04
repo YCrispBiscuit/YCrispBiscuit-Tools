@@ -54,12 +54,14 @@ const emit = defineEmits<Emits>()
 // 状态管理
 const gridContainer = ref<HTMLElement>()
 const layout = ref<GridLayoutItem[]>([])
-const gridCols = 48  // 增加到48列，使网格更密
-const gridRows = 32  // 增加到32行，使网格更密
+const minCellWidth = 20
+const minCellHeight = 20
+const gridCols = ref(48)  // 响应式列数
+const gridRows = 32  // 行数保持不变
 
 // 计算网格单元尺寸
-const cellWidth = ref(20)  // 设置固定最小尺寸
-const cellHeight = ref(20) // 设置固定最小尺寸
+const cellWidth = ref(minCellWidth)
+const cellHeight = ref(minCellHeight)
 
 // 组件是否已经初始化完成
 const isInitialized = ref(false)
@@ -106,15 +108,13 @@ watch(() => props.initialLayout, (newLayout) => {
 const calculateGridSize = () => {
   if (gridContainer.value) {
     const rect = gridContainer.value.getBoundingClientRect()
-    console.log('WorkspaceGrid: 计算网格尺寸', { width: rect.width, height: rect.height })
-    
-    // 确保单元格尺寸不会太小
-    const newCellWidth = Math.max(15, Math.floor(rect.width / gridCols))
-    const newCellHeight = Math.max(15, Math.floor(rect.height / gridRows))
-    
-    cellWidth.value = newCellWidth
-    cellHeight.value = newCellHeight
-    console.log('WorkspaceGrid: 单元格尺寸', { cellWidth: cellWidth.value, cellHeight: cellHeight.value })
+    // 动态计算列数，保证格数 × cellWidth ≈ 容器宽度
+    const cols = Math.max(12, Math.floor(rect.width / minCellWidth))
+    gridCols.value = cols
+    cellWidth.value = rect.width / cols
+    // 行数和高度同理
+    cellHeight.value = Math.max(minCellHeight, Math.floor(rect.height / gridRows))
+    // console.log('WorkspaceGrid: 动态列数', gridCols.value, '单元格尺寸', cellWidth.value, cellHeight.value)
   }
 }
 
@@ -122,8 +122,10 @@ const calculateGridSize = () => {
 const handlePanelMove = (panelId: string, newX: number, newY: number) => {
   const panel = layout.value.find(p => p.i === panelId)
   if (panel) {
-    panel.x = Math.max(0, Math.min(newX, gridCols - panel.w))
-    panel.y = Math.max(0, Math.min(newY, gridRows - panel.h))
+    // 允许面板x最大为gridCols.value-1，保证能拖到最右侧
+    panel.x = Math.max(0, Math.min(newX, gridCols.value - 1))
+    // 允许面板y最大为gridRows-1，保证能拖到最底部
+    panel.y = Math.max(0, Math.min(newY, gridRows - 1))
     emitLayoutChange()
   }
 }
@@ -132,7 +134,7 @@ const handlePanelMove = (panelId: string, newX: number, newY: number) => {
 const handlePanelResize = (panelId: string, newW: number, newH: number) => {
   const panel = layout.value.find(p => p.i === panelId)
   if (panel) {
-    panel.w = Math.max(2, Math.min(newW, gridCols - panel.x))
+    panel.w = Math.max(2, Math.min(newW, gridCols.value - panel.x)) // 保持原逻辑，防止超出
     panel.h = Math.max(2, Math.min(newH, gridRows - panel.y))
     emitLayoutChange()
   }
@@ -185,7 +187,7 @@ const addPanelAtPosition = (id: string, component: string, title: string, props:
   
   const newPanel: GridLayoutItem = {
     i: `${id}-${Date.now()}`,
-    x: Math.max(0, Math.min(x, gridCols - 18)),  // 调整边界检查以适应更大的面板
+    x: Math.max(0, Math.min(x, gridCols.value - 18)),  // 调整边界检查以适应更大的面板
     y: Math.max(0, Math.min(y, gridRows - 12)),   // 调整边界检查以适应更大的面板
     w: 18,  // 增大默认宽度（从12格增加到18格）
     h: 12,   // 增大默认高度（从8格增加到12格）
@@ -235,7 +237,7 @@ const addPanel = (id: string, component: string, title: string, props: any = {})
   // 寻找合适的位置创建新面板
   let x = 0, y = 0
   for (let row = 0; row < gridRows - 11; row++) {  // 调整搜索范围（从7改为11）
-    for (let col = 0; col < gridCols - 17; col++) {  // 调整搜索范围（从11改为17）
+    for (let col = 0; col < gridCols.value - 17; col++) {  // 调整搜索范围（从11改为17）
       if (isPositionAvailable(col, row, 18, 12)) {  // 调整检查尺寸（从12,8改为18,12）
         x = col
         y = row
@@ -244,7 +246,6 @@ const addPanel = (id: string, component: string, title: string, props: any = {})
     }
     if (x !== 0 || y !== 0) break
   }
-  
   addPanelAtPosition(id, component, title, props, x, y)
 }
 

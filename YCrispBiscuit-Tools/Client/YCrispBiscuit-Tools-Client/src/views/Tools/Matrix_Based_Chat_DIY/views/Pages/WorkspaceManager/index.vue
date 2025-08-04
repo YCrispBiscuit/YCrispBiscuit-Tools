@@ -87,14 +87,6 @@ const availableFunctions = ref<PanelFunction[]>([
   
   
   {
-    id: 'user-info',
-    name: '用户信息',
-    icon: '👤',
-    description: '用户信息面板',
-    component: 'UserInfo',
-    category: 'system'
-  },
-  {
     id: 'notification-panel',
     name: '通知',
     icon: '🔔',
@@ -312,7 +304,7 @@ defineExpose({
 /* 抽屉切换按钮 */
 .drawer-toggle {
   position: fixed;
-  left: 10px;
+  right: 10px;
   top: 10px;
   z-index: 1000;
   width: 40px;

@@ -1,12 +1,12 @@
 <template>
   <div class="left-function-sidebar">
     <!-- 功能列表组件 -->
-    <FunctionList />
+    <FunctionList @function-change="emit('function-change', $event)" />
     
     <!-- 用户面板组件 -->
     <UserPanel 
       :user-initials="userInitials"
-      @logout="$emit('logout')"
+      @userInfo="emit('userInfo')"
     />
   </div>
 </template>
@@ -21,9 +21,7 @@ interface Props {
 
 defineProps<Props>()
 
-defineEmits<{
-  logout: []
-}>()
+const emit = defineEmits(['userInfo', 'function-change'])
 </script>
 
 <style scoped>

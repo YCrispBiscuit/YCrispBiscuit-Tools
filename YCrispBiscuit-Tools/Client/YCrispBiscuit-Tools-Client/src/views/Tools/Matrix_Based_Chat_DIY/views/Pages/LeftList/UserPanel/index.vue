@@ -1,13 +1,8 @@
 <template>
   <div class="user-panel">
-    <div class="user-avatar">
-      <span>{{ userInitials }}</span>
-    </div>
-    <div class="user-controls">
-      <button @click="$emit('logout')" class="logout-btn" title="登出">
-        <span>🚪</span>
-      </button>
-    </div>
+    <button class="user-center-btn" @click="emit('userInfo')" title="个人中心">
+      <span class="user-center-label">个人中心</span>
+    </button>
   </div>
 </template>
 
@@ -17,10 +12,7 @@ interface Props {
 }
 
 defineProps<Props>()
-
-defineEmits<{
-  logout: []
-}>()
+const emit = defineEmits(['userInfo'])
 </script>
 
 <style scoped>
@@ -31,9 +23,22 @@ defineEmits<{
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
 }
 
+.user-center-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.user-center-btn:hover {
+  background: #36393f;
+}
 .user-avatar {
   width: 32px;
   height: 32px;
@@ -45,38 +50,10 @@ defineEmits<{
   color: white;
   font-size: 14px;
   font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
-
-.user-avatar:hover {
-  background-color: #677bc4;
-  border-radius: 16px;
-}
-
-.user-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 100%;
-  align-items: center;
-}
-
-.logout-btn {
-  width: 32px;
-  height: 32px;
-  background-color: #ed4245;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-.logout-btn:hover {
-  background-color: #c23e41;
+.user-center-label {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
 }
 </style>

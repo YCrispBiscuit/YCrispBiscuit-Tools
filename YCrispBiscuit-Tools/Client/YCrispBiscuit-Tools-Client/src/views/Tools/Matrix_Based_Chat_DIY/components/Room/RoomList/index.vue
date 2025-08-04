@@ -194,7 +194,7 @@ onMounted(() => {
 
 .room-info {
   flex: 1;
-  min-width: 0;
+  min-width: 150px; /* 你希望的最小宽度 */
 }
 
 .room-name {
@@ -238,6 +238,15 @@ onMounted(() => {
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
+  min-width: 0;
+  
+
+  max-width: 80px; /* 或你希望的最大宽度 */
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .encrypted-badge {
