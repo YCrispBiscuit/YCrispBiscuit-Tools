@@ -2,6 +2,7 @@
   <div 
     class="grid-panel"
     :style="panelStyle"
+    :data-panel-id="panel.i"
     @mousedown="handleMouseDown"
   >
     <!-- 面板头部 -->
@@ -14,7 +15,7 @@
           class="tab"
           :class="{ active: tab.id === panel.activeTab }"
           @click="activateTab(tab.id)"
-          @mousedown.stop
+          @mousedown.stop="handleTabMouseDown(tab, $event)"
         >
           <span class="tab-title">{{ tab.title }}</span>
           <button
@@ -88,6 +89,7 @@ interface Emits {
   (e: 'tab-close', panelId: string, tabId: string): void
   (e: 'tab-detach', panelId: string, tabId: string): void
   (e: 'tab-activate', panelId: string, tabId: string): void
+  (e: 'tab-drag-start', panelId: string, tabId: string, tab: TabItem): void
   (e: 'delete', panelId: string): void
 }
 
@@ -161,6 +163,15 @@ const detachTab = (tabId: string) => {
 // 删除面板
 const deletePanel = () => {
   emit('delete', props.panel.i)
+}
+
+// 选项卡拖拽相关方法
+const handleTabMouseDown = (tab: TabItem, event: MouseEvent) => {
+  // 防止面板拖拽被触发
+  event.stopPropagation()
+  
+  // 立即触发拖拽开始（简化逻辑）
+  emit('tab-drag-start', props.panel.i, tab.id, tab)
 }
 
 // 处理鼠标按下（开始拖拽面板）

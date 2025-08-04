@@ -14,14 +14,23 @@
         :grid-rows="gridRows"
         :cell-width="cellWidth"
         :cell-height="cellHeight"
+        :data-panel-id="panel.i"
         @move="handlePanelMove"
         @resize="handlePanelResize"
         @tab-close="handleTabClose"
         @tab-detach="handleTabDetach"
         @tab-activate="handleTabActivate"
         @delete="handlePanelDelete"
+        @tab-drag-start="handleTabDragStart"
       />
     </div>
+
+    <!-- 拖拽视觉指示器 -->
+    <DragVisualIndicator
+      :drag-state="dragManager?.getDragState() || defaultDragState"
+      :current-drop-zone="dragManager?.getCurrentDropZone()"
+      :drag-preview="dragPreview"
+    />
 
     <!-- 空状态提示 -->
     <div v-if="layout.length === 0" class="empty-state">
@@ -35,9 +44,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import GridPanel from './GridPanel.vue'
-import type { GridLayoutItem, TabItem } from './types'
+import DragVisualIndicator from './DragVisualIndicator.vue'
+import { DragDropManager } from './DragDropManager'
+import type { GridLayoutItem, DragState, DropZone, TabItem } from './types'
 
 interface Props {
   initialLayout?: GridLayoutItem[] | null
@@ -65,6 +76,18 @@ const cellHeight = ref(minCellHeight)
 
 // 组件是否已经初始化完成
 const isInitialized = ref(false)
+
+// 拖拽相关状态
+const dragManager = ref<DragDropManager | null>(null)
+const dragPreview = ref<{ title: string; x: number; y: number } | null>(null)
+
+// 默认拖拽状态
+const defaultDragState: DragState = {
+  isDragging: false,
+  dragType: 'tab',
+  sourceData: {},
+  availableDropZones: []
+}
 
 // 初始化默认布局
 const initializeDefaultLayout = () => {
@@ -278,6 +301,264 @@ const emitLayoutChange = () => {
   })
 }
 
+// 拖拽相关方法
+const handleTabDragStart = (panelId: string, tabId: string, tab: TabItem) => {
+  console.log('🎯 开始标签页拖拽:', { panelId, tabId, tab })
+  
+  if (!dragManager.value) {
+    console.log('🔧 初始化拖拽管理器')
+    initializeDragManager()
+  }
+  
+  dragManager.value?.startDrag('tab', {
+    panelId,
+    tabId,
+    tab
+  })
+  
+  console.log('✅ 拖拽已开始')
+  
+  // 初始化拖拽预览
+  dragPreview.value = {
+    title: tab.title,
+    x: 0,
+    y: 0
+  }
+}
+
+const handleMouseMove = (event: MouseEvent) => {
+  if (dragManager.value?.isDragging() && gridContainer.value) {
+    const rect = gridContainer.value.getBoundingClientRect()
+    const mouseX = event.clientX - rect.left
+    const mouseY = event.clientY - rect.top
+    
+    // 更新拖拽位置
+    dragManager.value.updateDragPosition(mouseX, mouseY, rect)
+    
+    // 更新拖拽预览位置
+    if (dragPreview.value) {
+      dragPreview.value.x = mouseX
+      dragPreview.value.y = mouseY
+    }
+  }
+}
+
+const handleMouseUp = () => {
+  if (dragManager.value?.isDragging()) {
+    const { dropZone, sourceData } = dragManager.value.endDrag()
+    
+    console.log('🖱️ 鼠标释放, dropZone:', dropZone, 'sourceData:', sourceData)
+    
+    if (dropZone) {
+      handleDrop(dropZone, sourceData)
+    } else {
+      console.log('❌ 没有有效的放置区域')
+    }
+    
+    // 清理拖拽预览
+    dragPreview.value = null
+  }
+}
+
+// 处理放置操作
+const handleDrop = (dropZone: DropZone, sourceData?: any) => {
+  // 如果没有传入 sourceData，尝试从拖拽状态获取
+  if (!sourceData) {
+    const dragState = dragManager.value?.getDragState()
+    sourceData = dragState?.sourceData
+  }
+  
+  if (!sourceData) {
+    console.log('❌ 没有拖拽状态')
+    return
+  }
+  
+  console.log('🎯 执行放置操作:', {
+    dropZone: dropZone.type,
+    position: dropZone.position,
+    targetPanelId: dropZone.targetPanelId,
+    sourceData
+  })
+  
+  switch (dropZone.type) {
+    case 'split':
+      console.log('🔀 执行分割放置')
+      handleSplitDrop(dropZone, sourceData)
+      break
+    case 'merge':
+      console.log('🔗 执行合并放置')
+      handleMergeDrop(dropZone, sourceData)
+      break
+    case 'replace':
+      console.log('🔄 执行替换放置')
+      handleReplaceDrop(dropZone, sourceData)
+      break
+  }
+}
+
+// 处理分割放置
+const handleSplitDrop = (dropZone: DropZone, sourceData: any) => {
+  console.log('🔀 开始分割放置:', { dropZone, sourceData })
+  
+  if (!dropZone.targetPanelId || !sourceData.tab) {
+    console.log('❌ 分割放置失败: 缺少目标面板ID或选项卡数据')
+    return
+  }
+  
+  const targetPanel = layout.value.find(p => p.i === dropZone.targetPanelId)
+  if (!targetPanel) {
+    console.log('❌ 分割放置失败: 找不到目标面板')
+    return
+  }
+  
+  console.log('✅ 找到目标面板:', targetPanel)
+  
+  // 创建新面板
+  const newPanel: GridLayoutItem = {
+    i: `panel-${Date.now()}`,
+    x: targetPanel.x,
+    y: targetPanel.y,
+    w: targetPanel.w,
+    h: targetPanel.h,
+    tabs: [{
+      id: sourceData.tab.id,
+      title: sourceData.tab.title,
+      component: sourceData.tab.component,
+      props: sourceData.tab.props || {},
+      closeable: sourceData.tab.closeable !== false
+    }],
+    activeTab: sourceData.tab.id
+  }
+  
+  // 根据分割位置调整面板大小和位置
+  switch (dropZone.position) {
+    case 'top':
+      targetPanel.y += Math.floor(targetPanel.h / 2)
+      targetPanel.h = Math.floor(targetPanel.h / 2)
+      newPanel.h = Math.floor(newPanel.h / 2)
+      break
+    case 'bottom':
+      newPanel.y += Math.floor(targetPanel.h / 2)
+      newPanel.h = Math.floor(newPanel.h / 2)
+      targetPanel.h = Math.floor(targetPanel.h / 2)
+      break
+    case 'left':
+      targetPanel.x += Math.floor(targetPanel.w / 2)
+      targetPanel.w = Math.floor(targetPanel.w / 2)
+      newPanel.w = Math.floor(newPanel.w / 2)
+      break
+    case 'right':
+      newPanel.x += Math.floor(targetPanel.w / 2)
+      newPanel.w = Math.floor(newPanel.w / 2)
+      targetPanel.w = Math.floor(targetPanel.w / 2)
+      break
+  }
+  
+  layout.value.push(newPanel)
+  
+  // 从原面板中移除选项卡
+  if (sourceData.panelId && sourceData.tabId) {
+    handleTabClose(sourceData.panelId, sourceData.tabId)
+  }
+  
+  emitLayoutChange()
+}
+
+// 处理合并放置
+const handleMergeDrop = (dropZone: DropZone, sourceData: any) => {
+  console.log('🔗 开始合并放置:', { dropZone, sourceData })
+  console.log('📋 检查数据:', {
+    hasTargetPanelId: !!dropZone.targetPanelId,
+    targetPanelId: dropZone.targetPanelId,
+    hasSourceTab: !!sourceData.tab,
+    sourceData: sourceData,
+    sourceDataKeys: Object.keys(sourceData)
+  })
+  
+  if (!dropZone.targetPanelId || !sourceData.tab) {
+    console.log('❌ 合并放置失败: 缺少目标面板ID或选项卡数据')
+    return
+  }
+  
+  const targetPanel = layout.value.find(p => p.i === dropZone.targetPanelId)
+  if (!targetPanel || !targetPanel.tabs) {
+    console.log('❌ 合并放置失败: 找不到目标面板或目标面板没有选项卡')
+    return
+  }
+  
+  console.log('✅ 找到目标面板:', targetPanel)
+  
+  // 检查是否已存在相同的选项卡
+  const tabExists = targetPanel.tabs.some(tab => tab.id === sourceData.tab.id)
+  if (!tabExists) {
+    targetPanel.tabs.push({
+      id: sourceData.tab.id,
+      title: sourceData.tab.title,
+      component: sourceData.tab.component,
+      props: sourceData.tab.props || {},
+      closeable: sourceData.tab.closeable !== false
+    })
+    targetPanel.activeTab = sourceData.tab.id
+  }
+  
+  // 从原面板中移除选项卡
+  if (sourceData.panelId && sourceData.tabId) {
+    handleTabClose(sourceData.panelId, sourceData.tabId)
+  }
+  
+  emitLayoutChange()
+}
+
+// 处理替换放置
+const handleReplaceDrop = (dropZone: DropZone, sourceData: any) => {
+  if (!sourceData.tab) return
+  
+  // 在空白区域创建新面板
+  const newPanel: GridLayoutItem = {
+    i: `panel-${Date.now()}`,
+    x: Math.max(0, Math.min(Math.floor(dropZone.rect.left / cellWidth.value), gridCols.value - 12)),
+    y: Math.max(0, Math.min(Math.floor(dropZone.rect.top / cellHeight.value), gridRows - 8)),
+    w: 12,
+    h: 8,
+    tabs: [{
+      id: sourceData.tab.id,
+      title: sourceData.tab.title,
+      component: sourceData.tab.component,
+      props: sourceData.tab.props || {},
+      closeable: sourceData.tab.closeable !== false
+    }],
+    activeTab: sourceData.tab.id
+  }
+  
+  layout.value.push(newPanel)
+  
+  // 从原面板中移除选项卡
+  if (sourceData.panelId && sourceData.tabId) {
+    handleTabClose(sourceData.panelId, sourceData.tabId)
+  }
+  
+  emitLayoutChange()
+}
+
+// 初始化拖拽管理器
+const initializeDragManager = () => {
+  dragManager.value = new DragDropManager({
+    onDragStart: (state) => {
+      console.log('拖拽开始:', state)
+    },
+    onDragMove: () => {
+      // console.log('拖拽移动:', state)
+    },
+    onDragEnd: (dropZone) => {
+      console.log('拖拽结束:', dropZone)
+      // 注意：这里不调用 handleDrop，在 handleMouseUp 中统一处理
+    },
+    onDropZoneChange: (dropZone) => {
+      console.log('放置区域变化:', dropZone)
+    }
+  })
+}
+
 // 监听窗口大小变化
 const handleResize = () => {
   calculateGridSize()
@@ -287,6 +568,10 @@ const handleResize = () => {
 onMounted(() => {
   calculateGridSize()
   window.addEventListener('resize', handleResize)
+  
+  // 添加全局鼠标事件监听，支持拖拽
+  document.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('mouseup', handleMouseUp)
   
   // 标记组件初始化完成
   nextTick(() => {
@@ -301,6 +586,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  document.removeEventListener('mousemove', handleMouseMove)
+  document.removeEventListener('mouseup', handleMouseUp)
 })
 
 // 暴露公共方法

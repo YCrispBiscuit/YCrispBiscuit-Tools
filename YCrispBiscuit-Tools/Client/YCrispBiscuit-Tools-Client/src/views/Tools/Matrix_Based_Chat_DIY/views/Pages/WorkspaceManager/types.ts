@@ -43,13 +43,27 @@ export interface FloatingWindow {
   maximized?: boolean
 }
 
-// 拖拽检测区域
+// 拖拽放置区域类型
 export interface DropZone {
   id: string
-  type: 'empty' | 'existing'
-  zone?: 'center' | 'top' | 'bottom' | 'left' | 'right'
-  gridPosition?: { x: number; y: number; w: number; h: number }
-  targetId?: string
+  type: 'split' | 'merge' | 'replace'
+  position: 'top' | 'bottom' | 'left' | 'right' | 'center'
+  targetPanelId?: string
+  rect: DOMRect
+  splitRatio?: number
+}
+
+// 拖拽状态
+export interface DragState {
+  isDragging: boolean
+  dragType: 'tab' | 'panel'
+  sourceData: {
+    panelId?: string
+    tabId?: string
+    tab?: TabItem
+  }
+  currentDropZone?: DropZone
+  availableDropZones: DropZone[]
 }
 
 // 面板属性 (传递给各个功能组件的 props)
