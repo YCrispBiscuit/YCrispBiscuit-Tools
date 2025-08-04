@@ -110,7 +110,9 @@ class 消息服务类 {
                     console.log(`房间 ${房间ID} 手动解密成功:`, 解密后内容.body)
                   } catch (手动解密错误) {
                     console.log(`房间 ${房间ID} 手动解密失败:`, 手动解密错误)
-                    消息内容 = '[加密消息 - 无法解密，可能缺少密钥]'
+                    // 尝试请求密钥
+                    await this.请求缺失密钥(房间ID, 消息事件)
+                    消息内容 = '[加密消息 - 无法解密，已请求密钥]'
                   }
                 } else {
                   console.log(`房间 ${房间ID} 加密引擎未初始化，无法解密消息`)
@@ -246,6 +248,199 @@ class 消息服务类 {
     })
 
     console.log('消息监听器已设置，开始监听新消息')
+  }
+
+  /**
+   * 请求缺失的加密密钥
+   * 当无法解密消息时，主动向其他设备请求密钥
+   * @param 房间ID - 消息所属房间
+   * @param 消息事件 - 无法解密的消息事件
+   */
+  private async 请求缺失密钥(房间ID: string, 消息事件: any): Promise<void> {
+    const 客户端实例 = matrixClient.getAuthedClient()
+    if (!客户端实例) {
+      return
+    }
+
+    try {
+      const crypto = 客户端实例.getCrypto()
+      if (!crypto) {
+        console.log('加密模块未初始化，无法请求密钥')
+        return
+      }
+
+      // 获取消息的加密内容
+      const 加密内容 = 消息事件.getWireContent()
+      if (!加密内容 || !加密内容.session_id) {
+        console.log('无法获取消息会话ID，无法请求密钥')
+        return
+      }
+
+      console.log(`🔑 请求房间 ${房间ID} 会话 ${加密内容.session_id} 的密钥`)
+
+      // 构建密钥请求参数
+      const 密钥请求参数 = {
+        algorithm: 'm.megolm.v1.aes-sha2',
+        room_id: 房间ID,
+        session_id: 加密内容.session_id,
+        sender_key: 加密内容.sender_key
+      }
+
+      // 请求房间密钥
+      if (crypto.requestRoomKey) {
+        await crypto.requestRoomKey(密钥请求参数)
+        console.log('🔑 密钥请求已发送，等待其他设备响应...')
+        
+        // 设置延迟重试机制
+        setTimeout(() => {
+          this.检查密钥请求结果(房间ID, 加密内容.session_id, 消息事件)
+        }, 5000) // 5秒后检查是否收到密钥
+        
+      } else if (crypto.sendRoomKeyRequest) {
+        // 兼容旧版本API
+        await crypto.sendRoomKeyRequest(密钥请求参数)
+        console.log('🔑 密钥请求已发送（使用兼容API）')
+      } else {
+        console.log('🔑 当前SDK版本不支持密钥请求')
+      }
+    } catch (错误) {
+      console.warn('🔑 请求密钥失败:', 错误)
+    }
+  }
+
+  /**
+   * 检查密钥请求结果
+   * @param 房间ID - 房间ID
+   * @param 会话ID - 会话ID
+   * @param 消息事件 - 原始消息事件
+   */
+  private async 检查密钥请求结果(房间ID: string, 会话ID: string, 消息事件: any): Promise<void> {
+    try {
+      const 客户端实例 = matrixClient.getAuthedClient()
+      if (!客户端实例) return
+
+      const crypto = 客户端实例.getCrypto()
+      if (!crypto) return
+
+      // 尝试重新解密消息
+      if (crypto.decryptEvent) {
+        await crypto.decryptEvent(消息事件)
+        
+        if (消息事件.isDecrypted && 消息事件.isDecrypted()) {
+          console.log(`🔑 密钥请求成功！消息 ${消息事件.getId()} 已解密`)
+          
+          // 通知UI更新消息显示
+          this.通知消息解密成功(房间ID, 消息事件)
+        } else {
+          console.log(`🔑 密钥请求暂未成功，消息 ${消息事件.getId()} 仍无法解密`)
+          
+          // 可以考虑再次请求或提示用户
+          this.处理密钥请求失败(房间ID, 会话ID)
+        }
+      }
+    } catch (错误) {
+      console.warn('🔑 检查密钥请求结果失败:', 错误)
+    }
+  }
+
+  /**
+   * 通知消息解密成功
+   * @param 房间ID - 房间ID
+   * @param 消息事件 - 已解密的消息事件
+   */
+  private 通知消息解密成功(房间ID: string, 消息事件: any): void {
+    console.log(`🔑 [解密成功] 房间 ${房间ID} 中的消息已解密`)
+    
+    // 这里可以发射事件通知UI层更新
+    // 例如：eventBus.emit('messageDecrypted', { roomId: 房间ID, event: 消息事件 })
+    
+    // 或者通过回调函数通知
+    if (this.消息解密回调) {
+      this.消息解密回调(房间ID, 消息事件)
+    }
+  }
+
+  /**
+   * 处理密钥请求失败
+   * @param 房间ID - 房间ID
+   * @param 会话ID - 会话ID
+   */
+  private 处理密钥请求失败(房间ID: string, 会话ID: string): void {
+    console.log(`🔑 [密钥请求失败] 房间 ${房间ID} 会话 ${会话ID} 的密钥请求未成功`)
+    
+    // 可以考虑：
+    // 1. 再次尝试请求
+    // 2. 提示用户验证更多设备
+    // 3. 记录失败的消息以便后续重试
+    
+    // 记录失败的密钥请求
+    this.记录失败的密钥请求(房间ID, 会话ID)
+  }
+
+  /**
+   * 记录失败的密钥请求
+   * @param 房间ID - 房间ID
+   * @param 会话ID - 会话ID
+   */
+  private 记录失败的密钥请求(房间ID: string, 会话ID: string): void {
+    // 这里可以实现持久化存储失败的请求
+    // 以便在新设备验证后重新尝试
+    console.log(`🔑 记录失败的密钥请求: 房间=${房间ID}, 会话=${会话ID}`)
+  }
+
+  // 消息解密成功回调函数
+  private 消息解密回调?: (房间ID: string, 消息事件: any) => void
+
+  /**
+   * 设置消息解密成功回调
+   * @param 回调函数 - 当消息解密成功时调用的函数
+   */
+  设置消息解密回调(回调函数: (房间ID: string, 消息事件: any) => void): void {
+    this.消息解密回调 = 回调函数
+  }
+
+  /**
+   * 检查并处理待解密消息
+   * 定期检查是否有新的密钥可以解密之前失败的消息
+   * @param 房间ID - 要检查的房间ID
+   */
+  async 重试解密消息(房间ID: string): Promise<void> {
+    const 客户端实例 = matrixClient.getAuthedClient()
+    if (!客户端实例) {
+      return
+    }
+
+    try {
+      const 房间对象 = 客户端实例.getRoom(房间ID)
+      if (!房间对象) {
+        return
+      }
+
+      const 时间线 = 房间对象.getLiveTimeline()
+      const 所有事件 = 时间线.getEvents()
+
+      // 找出所有加密事件
+      const 加密事件列表 = 所有事件.filter((事件: any) => 
+        事件.getType() === 'm.room.encrypted' && !事件.isDecrypted()
+      )
+
+      console.log(`房间 ${房间ID} 有 ${加密事件列表.length} 条待解密消息`)
+
+      // 尝试重新解密
+      for (const 事件 of 加密事件列表) {
+        try {
+          const crypto = 客户端实例.getCrypto()
+          if (crypto) {
+            await crypto.decryptEvent(事件)
+            console.log(`成功解密消息: ${事件.getId()}`)
+          }
+        } catch (解密错误) {
+          console.log(`消息 ${事件.getId()} 仍无法解密`)
+        }
+      }
+    } catch (错误) {
+      console.warn('重试解密失败:', 错误)
+    }
   }
 }
 

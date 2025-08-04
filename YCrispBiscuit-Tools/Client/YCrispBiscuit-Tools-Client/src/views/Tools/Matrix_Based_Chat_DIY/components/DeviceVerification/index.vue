@@ -56,7 +56,20 @@
           <div class="success-icon">✅</div>
           <h4>验证成功！</h4>
           <p>设备已成功验证，现在可以安全地进行端到端加密通信</p>
-          <button @click="closeVerification" class="accept-btn">完成</button>
+          
+          <!-- 提供交叉签名选项 -->
+          <div v-if="showCrossSigningOption" class="cross-signing-option">
+            <h5>🔐 启用交叉签名？</h5>
+            <p>交叉签名可以让您的所有设备相互信任，提高安全性和便利性</p>
+            <div class="verification-actions">
+              <button @click="setupCrossSigning" class="accept-btn">启用交叉签名</button>
+              <button @click="skipCrossSigning" class="neutral-btn">暂时跳过</button>
+            </div>
+          </div>
+          
+          <div v-else class="verification-actions">
+            <button @click="closeVerification" class="accept-btn">完成</button>
+          </div>
         </div>
 
         <!-- 验证失败 -->
@@ -78,12 +91,13 @@ import { matrixClient } from '../../services/matrix/client'
 // 验证状态
 const showVerification = ref(false)
 const loading = ref(false)
-const verificationState = ref<'waiting' | 'pending' | 'request' | 'ready' | 'started' | 'sas' | 'completed' | 'failed'>('waiting')
+const verificationState = ref<'waiting' | 'pending' | 'request' | 'ready' | 'started' | 'sas' | 'completed' | 'failed' | 'confirming'>('waiting')
 const currentRequest = ref<any>(null)
 const currentVerifier = ref<any>(null)
 const sasEmojis = ref<Array<{emoji: string, name: string}>>([])
 const verificationError = ref('')
 const sasConfirmCallback = ref<any>(null)
+const showCrossSigningOption = ref(false)
 
 // 打开验证界面
 const openVerification = async () => {
@@ -234,8 +248,12 @@ const handleVerificationRequest = (request: any) => {
         // 用户已经确认了SAS，可以标记为完成
         console.log('用户已确认SAS，验证完成!')
         verificationState.value = 'completed'
+        // 检查是否需要设置交叉签名
+        checkCrossSigningStatus()
         setTimeout(() => {
-          closeVerification()
+          if (!showCrossSigningOption.value) {
+            closeVerification()
+          }
         }, 2000)
       } else if (verificationState.value !== 'sas') {
         // 如果还没有显示SAS，直接完成
@@ -604,6 +622,66 @@ defineExpose({
   openVerification
 })
 
+// 设置交叉签名
+const setupCrossSigning = async () => {
+  try {
+    console.log('开始设置交叉签名...')
+    loading.value = true
+    
+    // 调用客户端的交叉签名初始化
+    await matrixClient.初始化交叉签名()
+    
+    console.log('交叉签名设置成功')
+    showCrossSigningOption.value = false
+    
+    // 可以考虑显示成功提示
+    setTimeout(() => {
+      closeVerification()
+    }, 1000)
+    
+  } catch (error) {
+    console.error('设置交叉签名失败:', error)
+    verificationError.value = '交叉签名设置失败: ' + (error as Error).message
+  } finally {
+    loading.value = false
+  }
+}
+
+// 跳过交叉签名
+const skipCrossSigning = () => {
+  console.log('用户选择跳过交叉签名')
+  showCrossSigningOption.value = false
+  closeVerification()
+}
+
+// 检查交叉签名状态
+const checkCrossSigningStatus = async () => {
+  try {
+    const client = matrixClient.获取已认证客户端()
+    if (!client) return
+
+    const crypto = client.getCrypto()
+    const userId = client.getUserId()
+    
+    if (!crypto || !userId) return
+
+    // 检查交叉签名是否已设置
+    const crossSigningInfo = await crypto.getCrossSigningInfo?.(userId)
+    
+    if (!crossSigningInfo || !crossSigningInfo.getId()) {
+      // 没有交叉签名，显示设置选项
+      console.log('检测到没有交叉签名，显示设置选项')
+      showCrossSigningOption.value = true
+    } else {
+      console.log('交叉签名已存在')
+      showCrossSigningOption.value = false
+    }
+  } catch (error) {
+    console.warn('检查交叉签名状态失败:', error)
+    showCrossSigningOption.value = false
+  }
+}
+
 onMounted(() => {
   // 组件挂载时立即设置监听器，这样就能接收到验证请求
   setupVerificationListeners()
@@ -770,5 +848,39 @@ onUnmounted(() => {
 
 .error-icon {
   color: #dc3545;
+}
+
+.cross-signing-option {
+  margin-top: 20px;
+  padding: 16px;
+  background: #e8f4f8;
+  border-radius: 8px;
+  border-left: 4px solid #17a2b8;
+}
+
+.cross-signing-option h5 {
+  margin: 0 0 8px 0;
+  color: #17a2b8;
+}
+
+.cross-signing-option p {
+  margin: 0 0 16px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.neutral-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.neutral-btn:hover {
+  background: #5a6268;
 }
 </style>

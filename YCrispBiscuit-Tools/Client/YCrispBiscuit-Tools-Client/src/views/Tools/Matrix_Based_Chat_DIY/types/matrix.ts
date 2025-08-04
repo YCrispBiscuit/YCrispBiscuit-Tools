@@ -101,6 +101,126 @@ export interface MatrixClientState {
   
   /** 当前登录的用户信息（可选），只有登录后才有值 */
   currentUser?: MatrixUser
+  
+  /** 端到端加密是否已初始化 */
+  cryptoInitialized?: boolean
+  
+  /** 交叉签名是否已设置 */
+  crossSigningReady?: boolean
+  
+  /** 密钥备份是否可用 */
+  keyBackupAvailable?: boolean
+}
+
+/**
+ * 设备信息接口
+ * 描述Matrix设备的详细信息和验证状态
+ */
+export interface MatrixDeviceInfo {
+  /** 设备ID */
+  deviceId: string
+  
+  /** 设备显示名称 */
+  displayName?: string
+  
+  /** 设备是否已验证 */
+  isVerified: boolean
+  
+  /** 设备是否被阻止 */
+  isBlocked: boolean
+  
+  /** 设备所属用户ID */
+  userId: string
+  
+  /** 设备的加密密钥 */
+  keys?: Record<string, string>
+}
+
+/**
+ * 完整设备信息接口（扩展版）
+ * 提供更详细的设备管理信息
+ */
+export interface MatrixDevice {
+  /** 设备ID */
+  deviceId: string
+  
+  /** 设备所属用户ID */
+  userId: string
+  
+  /** 设备显示名称 */
+  displayName: string
+  
+  /** 设备的加密密钥 */
+  keys: Record<string, string>
+  
+  /** 支持的加密算法 */
+  algorithms: string[]
+  
+  /** 设备是否已验证 */
+  isVerified: boolean
+  
+  /** 设备是否被阻止 */
+  isBlocked: boolean
+  
+  /** 是否为当前设备 */
+  isCurrent: boolean
+  
+  /** 最后在线时间 */
+  lastSeen: Date
+  
+  /** 设备指纹 */
+  fingerprint: string
+}
+
+/**
+ * 设备安全状态接口
+ * 用于描述房间或用户的设备安全情况
+ */
+export interface DeviceSecurityStatus {
+  /** 房间ID */
+  roomId: string
+  
+  /** 总设备数 */
+  totalDevices: number
+  
+  /** 已验证设备数 */
+  verifiedDevices: number
+  
+  /** 被阻止设备数 */
+  blockedDevices: number
+  
+  /** 未验证设备数 */
+  unverifiedDevices: number
+  
+  /** 未验证用户列表 */
+  unverifiedUsers: string[]
+  
+  /** 安全等级 */
+  securityLevel: 'high' | 'medium' | 'low'
+  
+  /** 是否安全 */
+  isSecure: boolean
+}
+
+/**
+ * 密钥请求接口
+ * 用于请求缺失的加密密钥
+ */
+export interface MatrixKeyRequest {
+  /** 房间ID */
+  roomId: string
+  
+  /** 会话ID */
+  sessionId: string
+  
+  /** 加密算法 */
+  algorithm: string
+  
+  /** 请求的发送者 */
+  requestingUserId: string
+  
+  /** 请求的设备ID */
+  requestingDeviceId: string
 }
 
 // ===== 以下是一些常用的辅助类型 =====
