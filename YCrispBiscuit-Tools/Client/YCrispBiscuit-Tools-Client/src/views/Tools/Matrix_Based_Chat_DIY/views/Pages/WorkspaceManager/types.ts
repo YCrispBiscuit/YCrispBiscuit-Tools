@@ -42,6 +42,7 @@ export interface FloatingWindow {
   height: number
   minimized?: boolean
   maximized?: boolean
+  zIndex?: number
 }
 
 // 拖拽放置区域类型

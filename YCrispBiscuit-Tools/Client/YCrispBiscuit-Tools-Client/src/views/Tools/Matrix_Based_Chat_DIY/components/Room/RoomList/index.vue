@@ -194,7 +194,7 @@ onMounted(() => {
 
 .room-info {
   flex: 1;
-  min-width: 150px; /* 你希望的最小宽度 */
+  min-width: 120px; /* 你希望的最小宽度 */
 }
 
 .room-name {

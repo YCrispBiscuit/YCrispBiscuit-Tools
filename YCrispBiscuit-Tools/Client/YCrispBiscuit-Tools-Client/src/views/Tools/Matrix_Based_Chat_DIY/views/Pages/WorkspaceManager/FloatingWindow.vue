@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineAsyncComponent } from 'vue'
+import { ref, defineAsyncComponent } from 'vue'
 import type { FloatingWindow } from './types'
 
 interface Props {
@@ -136,24 +136,22 @@ const getComponent = (componentName: string) => {
   return defineAsyncComponent(() => {
     switch (componentName) {
       case 'Chat':
-        return import('../RightContent/Chat/index.vue')
-     
+        return import('../RightContent/Chat/index.vue') as any
       case 'UserInfo':
-        return import('../RightContent/UserInfo/index.vue')
+        return import('../RightContent/UserInfo/index.vue') as any
       case 'FileManager':
-        return import('../RightContent/FileManager/index.vue')
-     
+        return import('../RightContent/FileManager/index.vue') as any
       case 'NotificationPanel':
-        return import('../RightContent/NotificationPanel/index.vue')
+        return import('../RightContent/NotificationPanel/index.vue') as any
       case 'Calendar':
-        return import('../RightContent/Calendar/index.vue')
+        return import('../RightContent/Calendar/index.vue') as any
       case 'Notes':
-        return import('../RightContent/Notes/index.vue')
-      
+        return import('../RightContent/Notes/index.vue') as any
       default:
         return Promise.resolve({
+          name: 'UnknownComponent',
           template: `<div class="unknown-component">未知组件: ${componentName}</div>`
-        })
+        }) as any
     }
   })
 }

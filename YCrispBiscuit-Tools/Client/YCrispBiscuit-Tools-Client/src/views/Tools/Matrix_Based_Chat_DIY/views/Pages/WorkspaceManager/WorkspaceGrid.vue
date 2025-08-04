@@ -301,7 +301,7 @@ const addPanelAtPosition = (id: string, component: string, title: string, props:
     x: Math.max(0, Math.min(x, Math.max(0, gridCols.value - panelWidth))),  // 动态计算右边界
     y: Math.max(0, Math.min(y, gridRows - panelHeight)),   // 动态计算下边界
     w: panelWidth,  // 响应式宽度
-    h: panelHeight,   // 响应式高度
+    h: panelHeight/0.5,   // 响应式高度
     tabs: [{
       id: `${component}-${Date.now()}`,
       title,
