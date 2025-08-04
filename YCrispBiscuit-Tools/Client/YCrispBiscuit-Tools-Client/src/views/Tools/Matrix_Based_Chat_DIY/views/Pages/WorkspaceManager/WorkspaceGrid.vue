@@ -22,6 +22,7 @@
         @tab-activate="handleTabActivate"
         @delete="handlePanelDelete"
         @tab-drag-start="handleTabDragStart"
+        @panel-focus="handlePanelFocus"
       />
     </div>
 
@@ -57,6 +58,7 @@ interface Props {
 interface Emits {
   (e: 'layout-changed', layout: GridLayoutItem[]): void
   (e: 'tab-detach', panelId: string, tabId: string): void
+  (e: 'panel-focus', panelId: string): void
 }
 
 const props = defineProps<Props>()
@@ -65,9 +67,58 @@ const emit = defineEmits<Emits>()
 // 状态管理
 const gridContainer = ref<HTMLElement>()
 const layout = ref<GridLayoutItem[]>([])
-const minCellWidth = 20
-const minCellHeight = 20
-const gridCols = ref(48)  // 响应式列数
+
+// 响应式断点和网格配置
+const breakpoints = {
+  mobile: 768,
+  tablet: 1024,
+  desktop: 1440,
+  large: 1920
+}
+
+// 根据屏幕尺寸动态计算网格参数
+const getGridConfig = (width: number) => {
+  if (width <= breakpoints.mobile) {
+    // 移动端：较少列数，较大单元格
+    return {
+      cols: Math.max(8, Math.floor(width / 80)),
+      minCellWidth: 60,
+      minCellHeight: 50
+    }
+  } else if (width <= breakpoints.tablet) {
+    // 平板端：中等列数
+    return {
+      cols: Math.max(16, Math.floor(width / 60)),
+      minCellWidth: 50,
+      minCellHeight: 40
+    }
+  } else if (width <= breakpoints.desktop) {
+    // 桌面端：标准配置
+    return {
+      cols: Math.max(24, Math.floor(width / 50)),
+      minCellWidth: 40,
+      minCellHeight: 30
+    }
+  } else if (width <= breakpoints.large) {
+    // 大屏：更多列数
+    return {
+      cols: Math.max(36, Math.floor(width / 45)),
+      minCellWidth: 35,
+      minCellHeight: 25
+    }
+  } else {
+    // 超大屏：最大密度
+    return {
+      cols: Math.max(48, Math.floor(width / 40)),
+      minCellWidth: 30,
+      minCellHeight: 20
+    }
+  }
+}
+
+const minCellWidth = ref(40)
+const minCellHeight = ref(30)
+const gridCols = ref(24)  // 响应式列数
 const gridRows = 32  // 行数保持不变
 
 // 计算网格单元尺寸
@@ -131,13 +182,22 @@ watch(() => props.initialLayout, (newLayout) => {
 const calculateGridSize = () => {
   if (gridContainer.value) {
     const rect = gridContainer.value.getBoundingClientRect()
-    // 动态计算列数，保证格数 × cellWidth ≈ 容器宽度
-    const cols = Math.max(12, Math.floor(rect.width / minCellWidth))
-    gridCols.value = cols
-    cellWidth.value = rect.width / cols
-    // 行数和高度同理
-    cellHeight.value = Math.max(minCellHeight, Math.floor(rect.height / gridRows))
-    // console.log('WorkspaceGrid: 动态列数', gridCols.value, '单元格尺寸', cellWidth.value, cellHeight.value)
+    const oldCols = gridCols.value
+    
+    // 使用响应式配置
+    const config = getGridConfig(rect.width)
+    
+    gridCols.value = config.cols
+    minCellWidth.value = config.minCellWidth
+    minCellHeight.value = config.minCellHeight
+    
+    // 计算实际单元格尺寸
+    cellWidth.value = rect.width / config.cols
+    cellHeight.value = Math.max(config.minCellHeight, Math.floor(rect.height / gridRows))
+    
+    if (oldCols !== config.cols) {
+      console.log(`WorkspaceGrid: 响应式调整 - 宽度: ${rect.width}px, 列数: ${oldCols} -> ${config.cols}, 单元格: ${cellWidth.value.toFixed(1)}x${cellHeight.value}px`)
+    }
   }
 }
 
@@ -145,10 +205,10 @@ const calculateGridSize = () => {
 const handlePanelMove = (panelId: string, newX: number, newY: number) => {
   const panel = layout.value.find(p => p.i === panelId)
   if (panel) {
-    // 允许面板x最大为gridCols.value-1，保证能拖到最右侧
-    panel.x = Math.max(0, Math.min(newX, gridCols.value - 1))
-    // 允许面板y最大为gridRows-1，保证能拖到最底部
-    panel.y = Math.max(0, Math.min(newY, gridRows - 1))
+    // 边界检查：确保面板完全在网格内
+    panel.x = Math.max(0, Math.min(newX, Math.max(0, gridCols.value - panel.w)))
+    panel.y = Math.max(0, Math.min(newY, Math.max(0, gridRows - panel.h)))
+    console.log(`面板 ${panelId} 移动到 (${panel.x}, ${panel.y})，网格尺寸: ${gridCols.value} x ${gridRows}`)
     emitLayoutChange()
   }
 }
@@ -198,6 +258,12 @@ const handleTabDetach = (panelId: string, tabId: string) => {
   handleTabClose(panelId, tabId)
 }
 
+// 处理面板聚焦（置顶）
+const handlePanelFocus = (panelId: string) => {
+  console.log(`WorkspaceGrid: 面板 ${panelId} 请求置顶`)
+  emit('panel-focus', panelId)
+}
+
 // 处理面板删除
 const handlePanelDelete = (panelId: string) => {
   layout.value = layout.value.filter(p => p.i !== panelId)
@@ -208,12 +274,34 @@ const handlePanelDelete = (panelId: string) => {
 const addPanelAtPosition = (id: string, component: string, title: string, props: any, x: number, y: number) => {
   console.log('正在添加面板:', { id, component, title, x, y })
   
+  // 响应式面板尺寸
+  const getPanelSize = () => {
+    const cols = gridCols.value
+    if (cols <= 16) {
+      // 移动端：较大的相对尺寸
+      return { width: Math.floor(cols * 0.8), height: 8 }
+    } else if (cols <= 24) {
+      // 平板端：中等尺寸
+      return { width: Math.floor(cols * 0.6), height: 10 }
+    } else if (cols <= 36) {
+      // 桌面端：标准尺寸
+      return { width: Math.floor(cols * 0.5), height: 12 }
+    } else {
+      // 大屏：相对较小的尺寸
+      return { width: Math.floor(cols * 0.4), height: 12 }
+    }
+  }
+  
+  const panelSize = getPanelSize()
+  const panelWidth = panelSize.width
+  const panelHeight = panelSize.height
+  
   const newPanel: GridLayoutItem = {
     i: `${id}-${Date.now()}`,
-    x: Math.max(0, Math.min(x, gridCols.value - 18)),  // 调整边界检查以适应更大的面板
-    y: Math.max(0, Math.min(y, gridRows - 12)),   // 调整边界检查以适应更大的面板
-    w: 18,  // 增大默认宽度（从12格增加到18格）
-    h: 12,   // 增大默认高度（从8格增加到12格）
+    x: Math.max(0, Math.min(x, Math.max(0, gridCols.value - panelWidth))),  // 动态计算右边界
+    y: Math.max(0, Math.min(y, gridRows - panelHeight)),   // 动态计算下边界
+    w: panelWidth,  // 响应式宽度
+    h: panelHeight,   // 响应式高度
     tabs: [{
       id: `${component}-${Date.now()}`,
       title,
@@ -221,11 +309,12 @@ const addPanelAtPosition = (id: string, component: string, title: string, props:
       props,
       closeable: true
     }],
-    activeTab: `${component}-${Date.now()}`
+    activeTab: `${component}-${Date.now()}`,
+    zIndex: 1
   }
   
   layout.value.push(newPanel)
-  console.log('面板已添加，当前布局:', layout.value.length, '个面板')
+  console.log(`面板已添加 ${panelWidth}x${panelHeight}，当前布局:`, layout.value.length, '个面板')
   emitLayoutChange()
 }
 
@@ -287,6 +376,15 @@ const isPositionAvailable = (x: number, y: number, w: number, h: number): boolea
 // 获取当前布局
 const getCurrentLayout = () => {
   return [...layout.value]
+}
+
+// 更新面板Z-index
+const updatePanelZIndex = (panelId: string, zIndex: number) => {
+  const panel = layout.value.find(p => p.i === panelId)
+  if (panel) {
+    panel.zIndex = zIndex
+    console.log(`WorkspaceGrid: 更新面板 ${panelId} Z-index 为 ${zIndex}`)
+  }
 }
 
 // 发出布局变化事件
@@ -569,6 +667,19 @@ onMounted(() => {
   calculateGridSize()
   window.addEventListener('resize', handleResize)
   
+  // 添加ResizeObserver来监听容器尺寸变化
+  if (gridContainer.value) {
+    const resizeObserver = new ResizeObserver(() => {
+      calculateGridSize()
+    })
+    resizeObserver.observe(gridContainer.value)
+    
+    // 在组件卸载时清理
+    onUnmounted(() => {
+      resizeObserver.disconnect()
+    })
+  }
+  
   // 添加全局鼠标事件监听，支持拖拽
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
@@ -593,7 +704,8 @@ onUnmounted(() => {
 // 暴露公共方法
 defineExpose({
   addPanel,
-  getCurrentLayout
+  getCurrentLayout,
+  updatePanelZIndex
 })
 </script>
 

@@ -3,7 +3,7 @@
     class="grid-panel"
     :style="panelStyle"
     :data-panel-id="panel.i"
-    @mousedown="handleMouseDown"
+    @mousedown="handlePanelMouseDown"
   >
     <!-- 面板头部 -->
     <div class="panel-header" ref="headerRef">
@@ -91,6 +91,7 @@ interface Emits {
   (e: 'tab-activate', panelId: string, tabId: string): void
   (e: 'tab-drag-start', panelId: string, tabId: string, tab: TabItem): void
   (e: 'delete', panelId: string): void
+  (e: 'panel-focus', panelId: string): void
 }
 
 const props = defineProps<Props>()
@@ -128,7 +129,7 @@ const panelStyle = computed(() => ({
   top: `${props.panel.y * props.cellHeight}px`,
   width: `${props.panel.w * props.cellWidth}px`,
   height: `${props.panel.h * props.cellHeight}px`,
-  zIndex: isDragging.value ? 1000 : 1
+  zIndex: isDragging.value ? 1000 : (props.panel.zIndex || 1)
 }))
 
 // 当前活动选项卡
@@ -172,6 +173,15 @@ const handleTabMouseDown = (tab: TabItem, event: MouseEvent) => {
   
   // 立即触发拖拽开始（简化逻辑）
   emit('tab-drag-start', props.panel.i, tab.id, tab)
+}
+
+// 处理面板鼠标按下（包括置顶和拖拽）
+const handlePanelMouseDown = (event: MouseEvent) => {
+  // 首先触发面板置顶
+  emit('panel-focus', props.panel.i)
+  
+  // 然后处理拖拽逻辑
+  handleMouseDown(event)
 }
 
 // 处理鼠标按下（开始拖拽面板）
@@ -278,12 +288,13 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
   position: absolute;
   background: #2d2d2d;
   border: 1px solid #444;
-  border-radius: 6px;
+  border-radius: clamp(4px, 0.5vw, 8px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
+  font-size: clamp(12px, 1.5vw, 14px);
 }
 
 .grid-panel:hover {
@@ -297,7 +308,7 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  min-height: 32px;
+  min-height: clamp(28px, 5vh, 36px);
   cursor: move;
   user-select: none;
 }
@@ -309,6 +320,63 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
   scrollbar-width: none;
 }
 
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .grid-panel {
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  
+  .panel-header {
+    min-height: 32px;
+  }
+  
+  .tab {
+    padding: 6px 10px !important;
+    min-width: 60px !important;
+    font-size: 12px !important;
+  }
+  
+  .control-btn {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* 平板端优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-panel {
+    font-size: 13px;
+  }
+  
+  .panel-header {
+    min-height: 30px;
+  }
+}
+
+/* 桌面端优化 */
+@media (min-width: 1025px) {
+  .grid-panel {
+    font-size: 14px;
+  }
+  
+  .panel-header {
+    min-height: 32px;
+  }
+}
+
+/* 大屏优化 */
+@media (min-width: 1440px) {
+  .grid-panel {
+    font-size: 15px;
+  }
+  
+  .panel-header {
+    min-height: 34px;
+  }
+}
+
 .tabs-container::-webkit-scrollbar {
   display: none;
 }
@@ -316,14 +384,15 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
 .tab {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
+  gap: clamp(2px, 0.5vw, 6px);
+  padding: clamp(4px, 1vh, 8px) clamp(6px, 1.5vw, 12px);
   background: transparent;
   border-right: 1px solid #444;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  min-width: 0;
+  min-width: clamp(40px, 10vw, 80px);
+  max-width: clamp(120px, 25vw, 200px);
 }
 
 .tab:hover {
@@ -336,10 +405,12 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
 }
 
 .tab-title {
-  font-size: 12px;
+  font-size: clamp(11px, 1.2vw, 13px);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .tab-close,
@@ -348,8 +419,14 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
   border: none;
   color: inherit;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: clamp(1px, 0.2vw, 3px) clamp(2px, 0.5vw, 5px);
   border-radius: 2px;
+  font-size: clamp(10px, 1.1vw, 12px);
+  width: clamp(16px, 3vw, 20px);
+  height: clamp(16px, 3vw, 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
   opacity: 0.7;
   transition: all 0.2s ease;

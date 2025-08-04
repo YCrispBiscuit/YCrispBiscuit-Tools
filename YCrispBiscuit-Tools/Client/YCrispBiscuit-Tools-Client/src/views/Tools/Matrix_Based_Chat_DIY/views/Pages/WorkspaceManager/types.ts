@@ -18,6 +18,7 @@ export interface GridLayoutItem {
   static?: boolean   // 是否静态 (不可拖拽/缩放)
   tabs?: TabItem[]   // 选项卡列表
   activeTab?: string // 当前激活的选项卡
+  zIndex?: number    // Z轴层级
 }
 
 // 选项卡定义

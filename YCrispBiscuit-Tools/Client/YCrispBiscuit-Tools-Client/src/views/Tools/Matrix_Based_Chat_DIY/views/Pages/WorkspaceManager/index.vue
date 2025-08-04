@@ -15,6 +15,7 @@
         :initial-layout="validatedLayout"
         @layout-changed="handleLayoutChanged"
         @tab-detach="handleTabDetach"
+        @panel-focus="handlePanelFocus"
       />
 
       <!-- 浮动窗口层 -->
@@ -100,6 +101,9 @@ const floatingWindows = ref<FloatingWindowType[]>([])
 const saveLayoutTimer = ref<number | null>(null)
 const lastSavedLayoutString = ref<string>('')
 
+// Z-index 管理
+const maxZIndex = ref(1000)
+
 // 验证并格式化布局配置
 const validatedLayout = computed(() => {
   if (!savedLayout.value || !Array.isArray(savedLayout.value)) {
@@ -166,6 +170,17 @@ const handleFunctionClick = async (func: PanelFunction) => {
   if (workspaceGridRef.value) {
     await nextTick()
     workspaceGridRef.value.addPanel(func.id, func.component, func.name, {})
+  }
+}
+
+// 处理面板置顶
+const handlePanelFocus = (panelId: string) => {
+  maxZIndex.value += 1
+  console.log(`面板 ${panelId} 置于顶层，Z-index: ${maxZIndex.value}`)
+  
+  // 更新WorkspaceGrid中的面板zIndex
+  if (workspaceGridRef.value) {
+    workspaceGridRef.value.updatePanelZIndex(panelId, maxZIndex.value)
   }
 }
 
@@ -301,16 +316,16 @@ defineExpose({
   overflow: hidden;
 }
 
-/* 抽屉切换按钮 */
+/* 抽屉切换按钮 - 响应式设计 */
 .drawer-toggle {
   position: fixed;
-  right: 10px;
-  top: 10px;
+  right: clamp(10px, 2vw, 20px);
+  top: clamp(10px, 2vh, 20px);
   z-index: 1000;
-  width: 40px;
-  height: 40px;
+  width: clamp(35px, 8vw, 50px);
+  height: clamp(35px, 8vw, 50px);
   border: none;
-  border-radius: 8px;
+  border-radius: clamp(6px, 1.5vw, 12px);
   background: rgba(45, 45, 45, 0.9);
   color: #e0e0e0;
   cursor: pointer;
@@ -320,6 +335,7 @@ defineExpose({
   transition: all 0.2s ease;
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: clamp(14px, 3vw, 20px);
 }
 
 .drawer-toggle:hover {
@@ -330,6 +346,49 @@ defineExpose({
 .drawer-toggle.active {
   background: rgba(0, 122, 255, 0.8);
   color: #fff;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .workspace-manager {
+    font-size: 14px;
+  }
+  
+  .drawer-toggle {
+    right: 10px;
+    top: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+}
+
+/* 平板端优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .workspace-manager {
+    font-size: 15px;
+  }
+}
+
+/* 桌面端优化 */
+@media (min-width: 1025px) {
+  .workspace-manager {
+    font-size: 16px;
+  }
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1440px) {
+  .workspace-manager {
+    font-size: 17px;
+  }
+}
+
+/* 超大屏幕优化 */
+@media (min-width: 1920px) {
+  .workspace-manager {
+    font-size: 18px;
+  }
 }
 
 .toggle-icon {

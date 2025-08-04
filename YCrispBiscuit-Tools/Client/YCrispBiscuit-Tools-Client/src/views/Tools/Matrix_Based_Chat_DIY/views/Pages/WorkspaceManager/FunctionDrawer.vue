@@ -121,7 +121,7 @@ const systemFunctions = computed(() =>
 }
 
 .drawer-content {
-  width: 320px;
+  width: clamp(280px, 25vw, 380px);
   height: 100%;
   background-color: #2f3136;
   display: flex;
@@ -130,12 +130,12 @@ const systemFunctions = computed(() =>
 }
 
 .drawer-header {
-  height: 60px;
+  height: clamp(50px, 8vh, 70px);
   background-color: #36393f;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 clamp(15px, 3vw, 25px);
   border-bottom: 1px solid #4f545c;
 }
 
