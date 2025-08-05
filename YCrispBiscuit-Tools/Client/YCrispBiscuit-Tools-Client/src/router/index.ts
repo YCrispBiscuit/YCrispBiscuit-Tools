@@ -64,6 +64,12 @@ const routes = [
     name: 'Matrix_Based_Chat_DIY',
     component: () => import('../views/Tools/Matrix_Based_Chat_DIY'),
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/matrix-chat-detached',
+    name: 'MatrixChatDetached',
+    component: () => import('../views/Tools/Matrix_Based_Chat_DIY/views/Pages/DetachedWindow.vue'),
+    meta: { requiresAuth: false }
   }
 
 ]

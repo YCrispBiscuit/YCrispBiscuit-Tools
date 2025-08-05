@@ -171,7 +171,7 @@ const handleTabMouseDown = (tab: TabItem, event: MouseEvent) => {
   // 防止面板拖拽被触发
   event.stopPropagation()
   
-  // 立即触发拖拽开始（简化逻辑）
+  // 立即触发拖拽开始（让WorkspaceGrid统一处理）
   emit('tab-drag-start', props.panel.i, tab.id, tab)
 }
 

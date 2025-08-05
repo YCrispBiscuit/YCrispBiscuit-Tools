@@ -36,10 +36,19 @@ export class DragDropManager {
     onDragMove?: (state: DragState) => void
     onDragEnd?: (dropZone?: DropZone) => void
     onDropZoneChange?: (dropZone?: DropZone) => void
+    onBrowserTopDetect?: (isNearTop: boolean) => void
   } = {}
+
+  private browserTopThreshold = 50 // 浏览器顶部检测阈值（像素）
+  private isNearBrowserTop = false
 
   constructor(callbacks: typeof this.callbacks) {
     this.callbacks = callbacks
+  }
+
+  // 设置浏览器顶部检测回调
+  setBrowserTopCallback(callback: (isNearTop: boolean) => void) {
+    this.callbacks.onBrowserTopDetect = callback
   }
 
   // 开始拖拽
@@ -58,6 +67,9 @@ export class DragDropManager {
   updateDragPosition(mouseX: number, mouseY: number, containerRect: DOMRect) {
     if (!this.dragState.isDragging) return
 
+    // 检测是否接近浏览器顶部
+    this.checkBrowserTopProximity(mouseY)
+
     // 计算所有可用的放置区域
     this.calculateDropZones(containerRect)
     
@@ -72,10 +84,27 @@ export class DragDropManager {
     this.callbacks.onDragMove?.(this.dragState)
   }
 
+  // 检测是否接近浏览器顶部
+  private checkBrowserTopProximity(mouseY: number) {
+    const wasNearTop = this.isNearBrowserTop
+    this.isNearBrowserTop = mouseY <= this.browserTopThreshold
+    
+    // 只有状态变化时才触发回调
+    if (wasNearTop !== this.isNearBrowserTop) {
+      this.callbacks.onBrowserTopDetect?.(this.isNearBrowserTop)
+    }
+  }
+
+  // 获取是否接近浏览器顶部
+  getIsNearBrowserTop(): boolean {
+    return this.isNearBrowserTop
+  }
+
   // 结束拖拽
-  endDrag(): { dropZone: DropZone | undefined, sourceData: any } {
+  endDrag(): { dropZone: DropZone | undefined, sourceData: any, isNearBrowserTop: boolean } {
     const dropZone = this.dragState.currentDropZone
     const sourceData = this.dragState.sourceData
+    const wasNearBrowserTop = this.isNearBrowserTop
     
     this.dragState = {
       isDragging: false,
@@ -84,8 +113,11 @@ export class DragDropManager {
       availableDropZones: []
     }
 
+    // 重置浏览器顶部状态
+    this.isNearBrowserTop = false
+
     this.callbacks.onDragEnd?.(dropZone)
-    return { dropZone, sourceData }
+    return { dropZone, sourceData, isNearBrowserTop: wasNearBrowserTop }
   }
 
   // 计算所有可用的放置区域

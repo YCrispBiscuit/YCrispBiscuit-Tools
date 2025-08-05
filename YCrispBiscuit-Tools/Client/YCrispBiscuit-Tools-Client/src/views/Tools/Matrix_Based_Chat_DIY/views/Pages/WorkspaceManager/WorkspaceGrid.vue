@@ -49,6 +49,7 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import GridPanel from './GridPanel.vue'
 import DragVisualIndicator from './DragVisualIndicator.vue'
 import { DragDropManager } from './DragDropManager'
+import { windowManager } from './WindowManager'
 import type { GridLayoutItem, DragState, DropZone, TabItem } from './types'
 
 interface Props {
@@ -131,6 +132,7 @@ const isInitialized = ref(false)
 // 拖拽相关状态
 const dragManager = ref<DragDropManager | null>(null)
 const dragPreview = ref<{ title: string; x: number; y: number } | null>(null)
+const browserTopIndicator = ref(false) // 浏览器顶部指示器
 
 // 默认拖拽状态
 const defaultDragState: DragState = {
@@ -422,6 +424,16 @@ const handleTabDragStart = (panelId: string, tabId: string, tab: TabItem) => {
     x: 0,
     y: 0
   }
+  
+  // 设置浏览器顶部检测回调
+  if (dragManager.value) {
+    dragManager.value.setBrowserTopCallback((isNearTop: boolean) => {
+      browserTopIndicator.value = isNearTop
+      // 更新鼠标样式提供视觉反馈
+      document.body.style.cursor = isNearTop ? 'copy' : 'grabbing'
+      console.log(isNearTop ? '💡 接近浏览器顶部 - 可释放创建新窗口' : '📍 离开浏览器顶部区域')
+    })
+  }
 }
 
 const handleMouseMove = (event: MouseEvent) => {
@@ -441,20 +453,44 @@ const handleMouseMove = (event: MouseEvent) => {
   }
 }
 
-const handleMouseUp = () => {
+const handleMouseUp = async () => {
   if (dragManager.value?.isDragging()) {
-    const { dropZone, sourceData } = dragManager.value.endDrag()
+    const { dropZone, sourceData, isNearBrowserTop } = dragManager.value.endDrag()
     
-    console.log('🖱️ 鼠标释放, dropZone:', dropZone, 'sourceData:', sourceData)
+    console.log('🖱️ 鼠标释放, dropZone:', dropZone, 'sourceData:', sourceData, 'isNearBrowserTop:', isNearBrowserTop)
     
-    if (dropZone) {
+    // 检查是否在浏览器顶部释放
+    if (isNearBrowserTop && sourceData?.tab) {
+      try {
+        console.log(`🚀 在浏览器顶部释放选项卡，创建新窗口: ${sourceData.tab.title}`)
+        
+        // 获取当前面板的位置信息
+        const panelElement = document.querySelector(`[data-panel-id="${sourceData.panelId}"]`)
+        const panelRect = panelElement?.getBoundingClientRect()
+        
+        // 创建新窗口
+        await windowManager.createDetachedWindow(sourceData.tab, panelRect)
+        
+        // 从当前面板移除这个选项卡
+        if (sourceData.panelId && sourceData.tabId) {
+          handleTabClose(sourceData.panelId, sourceData.tabId)
+        }
+        
+        console.log(`✅ 成功将选项卡 "${sourceData.tab.title}" 分离到新窗口`)
+      } catch (error) {
+        console.error('创建分离窗口失败:', error)
+        // TODO: 显示错误提示给用户
+      }
+    } else if (dropZone) {
       handleDrop(dropZone, sourceData)
     } else {
       console.log('❌ 没有有效的放置区域')
     }
     
-    // 清理拖拽预览
+    // 清理状态
     dragPreview.value = null
+    browserTopIndicator.value = false
+    document.body.style.cursor = 'default' // 重置鼠标样式
   }
 }
 
