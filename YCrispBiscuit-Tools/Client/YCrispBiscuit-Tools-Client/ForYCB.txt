@@ -1,10 +1,120 @@
-.env和.env.development用于配置VITE_开头的环境变量，如API基础URL
+.env## 🚀 **项目创建方式**
+### **方式1: 使用脚手架创建 (推荐新手)**
+```bash
+npm create vue@latest my-project
+# 然后手动调整package.json中的版本号到下面指定的版本
+```
 
+### **方式2: 手动创建项目确保版本一致**
+```bash
+mkdir my-project && cd my-project
+npm init -y  # 创建package.json文件
+# 然后按下面的依赖清单安装指定版本
+```
 
-安装了啥依赖？
-npm install vue-router@4  # 路由
-npm install pinia   # 状态管理
-npm install axios    # 请求
-npm install @vueuse/core  # 常用工具函数集合
-npm install dayjs        # 轻量日期库
-npm install naive-ui  # 轻量UI库
+### **方式3: 直接复制现有项目 (最快最保险) ⭐推荐⭐**
+```bash
+# 复制整个项目文件夹
+cp -r YCrispBiscuit-Tools-Client my-matrix-project
+cd my-matrix-project
+# 删除不需要的文件夹和功能
+# 重新安装依赖
+npm install
+```ment用于配置VITE_开头的环境变量，如API基础URL
+
+🎯 **完整依赖清单 - 按需选择安装**
+
+## � **项目创建方式**
+### **方式1: 使用脚手架创建 (推荐新手)**
+```bash
+npm create vue@latest my-project
+# 然后手动调整package.json中的版本号到下面指定的版本
+```
+
+### **方式2: 手动创建项目确保版本一致**
+```bash
+mkdir my-project && cd my-project
+npm init -y
+# 然后按下面的依赖清单安装指定版本
+```
+
+## �📦 **基础框架依赖**
+npm install vue@^3.5.13               # Vue 3核心 (确保版本一致)
+npm install vue-router@^4.5.1         # 路由管理
+npm install pinia@^3.0.3              # 状态管理
+npm install typescript@~5.8.3         # TypeScript支持
+
+## 🌐 **网络请求相关**
+npm install axios@^1.9.0              # HTTP请求库
+
+## 🛠️ **工具函数库**
+npm install @vueuse/core@^13.3.0      # Vue常用工具函数集合
+npm install dayjs@^1.11.13            # 轻量日期处理库
+
+## 🎨 **UI框架和组件**
+npm install naive-ui@^2.41.1          # 轻量UI组件库
+npm install @vicons/ionicons5@^0.13.0 # Ionicons图标库
+npm install @vicons/fa@^0.13.0        # FontAwesome图标库
+
+## 🔗 **Matrix聊天核心依赖** (Matrix_Based_Chat_DIY必需)
+npm install matrix-js-sdk@^37.11.0                      # Matrix JavaScript SDK
+npm install @matrix-org/matrix-sdk-crypto-wasm@^15.1.0  # Matrix加密WASM模块
+
+## 📱 **布局和工作区管理** (拖拽标签页功能必需)
+npm install vue-grid-layout@^2.4.0    # 网格布局组件
+npm install splitpanes@^4.0.4         # 可拖拽分割面板
+
+## 📝 **内容处理**
+npm install markdown-it@^14.1.0       # Markdown解析器
+npm install html2canvas@^1.4.1        # HTML转图片/截图
+
+## 🎮 **可视化和图形** (如果有流程图等需求)
+npm install @vue-flow/core@^1.45.0    # Vue流程图组件
+
+## 🔧 **开发依赖 (DevDependencies)**
+npm install -D @vitejs/plugin-vue@^5.2.3      # Vite Vue插件
+npm install -D @vue/tsconfig@^0.7.0           # Vue TypeScript配置
+npm install -D vite@^6.3.5                    # Vite构建工具
+npm install -D vue-tsc@^2.2.8                 # Vue TypeScript编译器
+npm install -D sass-embedded@^1.89.2          # SCSS预处理器
+npm install -D @types/node@^24.0.1            # Node.js类型定义
+npm install -D @types/markdown-it@^14.1.2     # markdown-it类型定义
+npm install -D @types/html2canvas@^0.5.35     # html2canvas类型定义
+
+## 🎯 **核心功能对应的最小依赖组合**
+
+### **只要基础Vue3+TS项目：**
+npm install vue vue-router pinia @vueuse/core dayjs naive-ui
+npm install -D @vitejs/plugin-vue vite vue-tsc typescript sass-embedded
+
+### **Matrix聊天功能 (Matrix_Based_Chat_DIY)：**
+npm install matrix-js-sdk @matrix-org/matrix-sdk-crypto-wasm axios
+
+### **拖拽标签页到新窗口功能：**
+npm install vue-grid-layout @vueuse/core
+
+### **完整Matrix工作区 (包含拖拽分离)：**
+npm install matrix-js-sdk @matrix-org/matrix-sdk-crypto-wasm vue-grid-layout splitpanes @vueuse/core dayjs axios
+
+### **如果需要UI美化：**
+npm install naive-ui @vicons/ionicons5 @vicons/fa
+
+### **如果需要内容处理：**
+npm install markdown-it html2canvas
+npm install -D @types/markdown-it @types/html2canvas
+
+## 📋 **package.json scripts 建议配置**
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  }
+}
+```
+
+## ⚙️ **重要配置提醒**
+- Matrix SDK需要在vite.config.ts中添加: `define: { global: 'globalThis' }`
+- SCSS支持需要在vite.config.ts中配置css.preprocessorOptions
+- 跨窗口通信需要确保同源策略配置正确
