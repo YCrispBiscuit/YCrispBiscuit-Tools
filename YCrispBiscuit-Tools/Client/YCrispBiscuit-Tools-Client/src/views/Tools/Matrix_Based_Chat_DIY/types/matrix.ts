@@ -17,6 +17,24 @@ export interface MatrixLoginConfig {
 }
 
 /**
+ * Matrix注册配置接口
+ * 包含用户注册Matrix账户所需的所有信息
+ */
+export interface MatrixRegisterConfig {
+  /** Matrix服务器地址，例如: https://matrix.org */
+  homeserver: string
+  
+  /** 用户名（不包含@符号和服务器名），例如: myusername */
+  username: string
+  
+  /** 用户密码 */
+  password: string
+  
+  /** 确认密码 */
+  confirmPassword: string
+}
+
+/**
  * Matrix用户信息接口
  * 代表一个Matrix用户的基本信息
  */

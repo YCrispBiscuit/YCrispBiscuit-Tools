@@ -1,7 +1,7 @@
 // Matrix 客户端管理服务
 // 负责处理Matrix客户端的创建、登录、认证、加密初始化等核心功能
 import * as sdk from "matrix-js-sdk";
-import type { MatrixLoginConfig, MatrixUser } from '../../types'
+import type { MatrixLoginConfig, MatrixRegisterConfig, MatrixUser } from '../../types'
 
 /**
  * Matrix客户端服务类
@@ -102,6 +102,9 @@ class Matrix客户端服务类 {
       console.log(`已认证客户端创建成功, baseUrl: ${this.已认证客户端实例.baseUrl}`)
       console.log(`客户端设备ID: ${this.已认证客户端实例.getDeviceId()}`)
 
+      // 保存登录参数到本地存储
+      this.保存登录参数(登录配置)
+
       // 返回用户信息
       return {
         userId: 登录结果.user_id,
@@ -125,6 +128,139 @@ class Matrix客户端服务类 {
         throw new Error(`登录失败: ${错误信息}`)
       }
     }
+  }
+
+  /**
+   * 用户注册到Matrix服务器
+   * @param 注册配置 - 包含服务器地址、用户名、密码等注册信息
+   * @returns 注册成功的用户信息
+   * @throws 如果注册失败则抛出详细错误信息
+   */
+  async 用户注册(注册配置: MatrixRegisterConfig): Promise<MatrixUser> {
+    console.log(`开始注册Matrix账户: ${注册配置.username}@${注册配置.homeserver}`)
+
+    // 验证密码确认
+    if (注册配置.password !== 注册配置.confirmPassword) {
+      throw new Error('密码和确认密码不匹配')
+    }
+
+    // 清理之前的客户端实例
+    this.基础客户端实例 = null
+    this.已认证客户端实例 = null
+
+    // 创建基础客户端用于注册
+    this.创建基础客户端(注册配置.homeserver)
+
+    try {
+      console.log(`向服务器发送注册请求...`)
+      
+      // 构建注册请求数据
+      const 注册数据 = {
+        username: 注册配置.username,
+        password: 注册配置.password,
+        initial_device_display_name: `LingJing 客户端 - ${注册配置.username}`,
+        inhibit_login: false // 注册后自动登录
+      }
+
+      // 调用Matrix SDK的注册接口
+      const 注册结果 = await this.基础客户端实例.registerRequest(注册数据)
+
+      console.log(`注册成功! 用户ID: ${注册结果.user_id}`)
+      console.log(`设备ID: ${注册结果.device_id}`)
+
+      // 如果注册成功且没有禁止登录，创建已认证的客户端
+      if (注册结果.access_token && 注册结果.device_id) {
+        this.已认证客户端实例 = sdk.createClient({
+          baseUrl: this.基础客户端实例.baseUrl,
+          accessToken: 注册结果.access_token,
+          userId: 注册结果.user_id,
+          deviceId: 注册结果.device_id,
+          useAuthorizationHeader: true
+        })
+
+        console.log(`已认证客户端创建成功`)
+
+        // 保存登录参数到本地存储
+        this.保存登录参数({
+          homeserver: 注册配置.homeserver,
+          username: 注册配置.username,
+          password: 注册配置.password
+        })
+
+        return {
+          userId: 注册结果.user_id,
+          displayName: 注册结果.user_id
+        }
+      } else {
+        throw new Error('注册成功但未获得访问令牌，请手动登录')
+      }
+
+    } catch (注册错误: any) {
+      const 错误信息 = 注册错误.message || 注册错误.toString()
+      console.error('注册失败:', 错误信息)
+
+      // 根据不同的错误类型提供友好的提示
+      if (错误信息.includes('M_USER_IN_USE') || 错误信息.includes('User ID already taken')) {
+        throw new Error('用户名已被占用，请选择其他用户名')
+      } else if (错误信息.includes('M_INVALID_USERNAME')) {
+        throw new Error('用户名格式无效，请使用字母、数字和下划线')
+      } else if (错误信息.includes('M_WEAK_PASSWORD')) {
+        throw new Error('密码强度不足，请使用更复杂的密码')
+      } else if (错误信息.includes('M_REGISTRATION_DISABLED')) {
+        throw new Error('此服务器已禁用用户注册')
+      } else if (错误信息.includes('M_LIMIT_EXCEEDED') || 错误信息.includes('429')) {
+        throw new Error('注册请求过于频繁，请稍后再试')
+      } else if (错误信息.includes('Network')) {
+        throw new Error('网络连接失败，请检查网络设置或服务器地址')
+      } else {
+        throw new Error(`注册失败: ${错误信息}`)
+      }
+    }
+  }
+
+  /**
+   * 保存登录参数到本地存储
+   * @param 登录配置 - 要保存的登录参数
+   */
+  保存登录参数(登录配置: MatrixLoginConfig): void {
+    try {
+      // 使用简单的编码（不是加密，只是编码以避免明文存储）
+      const 编码数据 = btoa(JSON.stringify(登录配置))
+      localStorage.setItem('matrix_login_params', 编码数据)
+      console.log('登录参数已保存到本地存储')
+    } catch (错误) {
+      console.warn('保存登录参数失败:', 错误)
+    }
+  }
+
+  /**
+   * 从本地存储加载登录参数
+   * @returns 保存的登录参数，如果没有则返回null
+   */
+  加载登录参数(): MatrixLoginConfig | null {
+    try {
+      const 编码数据 = localStorage.getItem('matrix_login_params')
+      if (!编码数据) {
+        return null
+      }
+
+      const 解码数据 = JSON.parse(atob(编码数据))
+      console.log('从本地存储加载登录参数成功')
+      return 解码数据
+    } catch (错误) {
+      console.warn('加载登录参数失败:', 错误)
+      // 清理无效数据
+      localStorage.removeItem('matrix_login_params')
+      return null
+    }
+  }
+
+  /**
+   * 清除本地存储的登录参数
+   */
+  清除登录参数(): void {
+    localStorage.removeItem('matrix_login_params')
+    console.log('登录参数已从本地存储清除')
   }
 
   /**
@@ -589,13 +725,19 @@ class Matrix客户端服务类 {
   /**
    * 用户登出
    * 清理所有客户端实例和相关状态
+   * @param 保留登录参数 - 是否保留本地存储的登录参数，默认保留
    */
-  用户登出(): void {
+  用户登出(保留登录参数: boolean = true): void {
     console.log('开始登出Matrix账户...')
     
-    // 如果有已认证的客户端，先执行登出操作
+    // 如果有已认证的客户端，先停止同步并执行登出操作
     if (this.已认证客户端实例) {
       try {
+        // 先停止客户端同步，避免继续发送请求
+        console.log('停止客户端同步...')
+        this.已认证客户端实例.stopClient()
+        
+        // 然后执行登出操作
         this.已认证客户端实例.logout()
         console.log('已向服务器发送登出请求')
       } catch (登出错误) {
@@ -605,9 +747,22 @@ class Matrix客户端服务类 {
     }
     
     // 清理基础客户端
-    this.基础客户端实例 = null
+    if (this.基础客户端实例) {
+      try {
+        this.基础客户端实例.stopClient()
+      } catch (停止错误) {
+        console.warn('停止基础客户端时出现错误:', 停止错误)
+      }
+      this.基础客户端实例 = null
+    }
     
-    console.log('✅ 登出完成，所有客户端实例已清理')
+    // 根据参数决定是否清除登录参数
+    if (!保留登录参数) {
+      this.清除登录参数()
+      console.log('✅ 完全登出完成，所有数据已清理')
+    } else {
+      console.log('✅ 登出完成，登录参数已保留')
+    }
   }
 
   /**

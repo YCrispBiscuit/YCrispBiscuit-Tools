@@ -6,8 +6,18 @@
       
       <!-- 登录表单组件 -->
       <LoginForm 
+        v-if="!isRegisterMode"
         ref="loginFormRef"
         @login="handleLoginAttempt" 
+        @switch-to-register="switchToRegister"
+      />
+
+      <!-- 注册表单组件 -->
+      <RegisterForm 
+        v-else
+        ref="registerFormRef"
+        @register="handleRegisterAttempt"
+        @switch-to-login="switchToLogin"
       />
     </div>
   </div>
@@ -16,11 +26,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import LoginForm from '../../components/Common/LoginForm/index.vue'  // 直接导入vue文件
+import RegisterForm from '../../components/Common/RegisterForm/index.vue'  // 导入注册表单
 import { matrixClient } from '../../services/matrix/client'
-import type { MatrixLoginConfig, MatrixUser } from '../../types'
+import type { MatrixLoginConfig, MatrixRegisterConfig, MatrixUser } from '../../types'
 
 // ===== 组件引用 =====
 const loginFormRef = ref()
+const registerFormRef = ref()
+
+// ===== 页面状态 =====
+/** 是否显示注册模式 */
+const isRegisterMode = ref(false)
 
 // ===== 登录限制状态 =====
 const 上次登录尝试时间 = ref<number>(0)
@@ -107,6 +123,64 @@ const handleLoginAttempt = async (loginData: MatrixLoginConfig) => {
       loginFormRef.value.resetLoginState(errorMessage)
     }
   }
+}
+
+/**
+ * 处理用户注册尝试
+ * @param registerData - 用户输入的注册信息
+ */
+const handleRegisterAttempt = async (registerData: MatrixRegisterConfig) => {
+  console.log('开始处理用户注册请求...')
+  console.log('收到的注册数据:', JSON.stringify({
+    homeserver: registerData.homeserver,
+    username: registerData.username,
+    deviceName: registerData.deviceName
+  }, null, 2))
+  
+  try {
+    // 第1步：用户注册
+    console.log('步骤1: 进行用户注册...')
+    const userInfo = await matrixClient.用户注册(registerData)
+    
+    // 第2步：初始化加密功能（可选，失败不影响基础功能）
+    console.log('步骤2: 初始化端到端加密...')
+    await matrixClient.初始化加密功能()
+    
+    // 第3步：启动客户端同步
+    console.log('步骤3: 启动客户端同步...')
+    matrixClient.启动客户端同步()
+    
+    // 第4步：通知父组件注册成功，直接进入聊天页面
+    console.log('✅ 注册流程完成，通知应用切换到聊天页面')
+    emit('login-success', userInfo)
+    
+  } catch (registerError: any) {
+    // 注册失败处理
+    console.error('❌ 注册失败:', registerError)
+    
+    let errorMessage = registerError.message || '注册失败，请重试'
+    
+    // 将错误信息传递给注册表单显示
+    if (registerFormRef.value) {
+      registerFormRef.value.resetRegisterState(errorMessage)
+    }
+  }
+}
+
+/**
+ * 切换到注册模式
+ */
+const switchToRegister = () => {
+  isRegisterMode.value = true
+  console.log('切换到注册模式')
+}
+
+/**
+ * 切换到登录模式
+ */
+const switchToLogin = () => {
+  isRegisterMode.value = false
+  console.log('切换到登录模式')
 }
 
 // ===== 页面初始化 =====

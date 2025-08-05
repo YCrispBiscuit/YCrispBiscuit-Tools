@@ -149,7 +149,8 @@ const handleFunctionChange = (newFunction: 'rooms' | 'userInfo') => {
 
 // 处理登出
 const handleLogout = () => {
-    matrixClient.用户登出()
+    // 退出但保留登录参数，方便下次登录
+    matrixClient.用户登出(true)  // true表示保留登录参数
     emit('logout')
 }
 
@@ -413,7 +414,8 @@ provide('chatContext', {
     currentUserId: computed(() => props.userId),
 
     // 方法
-    sendMessage: handleSendMessage
+    sendMessage: handleSendMessage,
+    logout: handleLogout  // 添加logout方法到context中
 })
 </script>
 
