@@ -38,7 +38,7 @@
       <div class="empty-content">
         <div class="empty-icon">📋</div>
         <h3>工作区为空</h3>
-        <p>点击左侧抽屉功能面板将其添加到此处开始工作</p>
+        <p>点击右侧抽屉功能面板将其添加到此处开始工作</p>
       </div>
     </div>
   </div>
@@ -750,7 +750,7 @@ defineExpose({
   position: relative;
   width: 100%;
   height: 100%;
-  background: #1e1e1e;
+  background: var(--workspace-bg, #181c20);
   overflow: hidden;
   z-index: 10;
 }
@@ -759,8 +759,7 @@ defineExpose({
   position: relative;
   width: 100%;
   height: 100%;
-  background-image: 
-    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-image: radial-gradient(circle, var(--grid-dot-color) 1px, transparent 1px);
   background-size: 25px 25px;  /* 调整网格背景以匹配更小的单元格 */
   z-index: 11;
 }
@@ -771,30 +770,36 @@ defineExpose({
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  color: #888;
+  color: var(--text-color-secondary);
   pointer-events: none;
 }
 
 .empty-content {
   max-width: 300px;
+  background: var(--empty-bg);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px var(--shadow-color, rgba(0,0,0,0.12));
+  padding: 32px 16px 24px 16px;
 }
 
 .empty-icon {
   font-size: 48px;
   margin-bottom: 16px;
   opacity: 0.5;
+  color: var(--color-primary, #007acc);
 }
 
 .empty-content h3 {
   margin: 0 0 8px 0;
   font-size: 18px;
   font-weight: 500;
+  color: var(--text-color);
 }
 
 .empty-content p {
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
-  opacity: 0.7;
+  color: var(--text-color);
 }
 </style>

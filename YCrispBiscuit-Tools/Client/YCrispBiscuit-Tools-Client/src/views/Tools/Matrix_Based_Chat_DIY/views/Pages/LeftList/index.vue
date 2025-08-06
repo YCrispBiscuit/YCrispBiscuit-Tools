@@ -29,6 +29,6 @@ const emit = defineEmits(['userInfo', 'function-change'])
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #202225;
+  background-color: var(--bg-color-secondary);
 }
 </style>

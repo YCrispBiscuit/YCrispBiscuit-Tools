@@ -408,7 +408,7 @@ defineExpose({
   flex-direction: column;
   height: 100%;
   padding: 16px;
-  background: #f8f9fa;
+  background: var(--bg-color);
 }
 
 .calendar-header {
@@ -426,22 +426,22 @@ defineExpose({
 
 .nav-btn {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: white;
+  background: var(--bg-color-secondary);
   cursor: pointer;
   font-size: 16px;
 }
 
 .nav-btn:hover {
-  background: #f0f0f0;
+  background: var(--bg-color);
 }
 
 .calendar-nav h3 {
   margin: 0;
   min-width: 120px;
   text-align: center;
-  color: #333;
+  color: var(--text-color);
 }
 
 .calendar-actions {
@@ -451,16 +451,16 @@ defineExpose({
 
 .today-btn, .add-event-btn {
   padding: 8px 12px;
-  border: 1px solid #007bff;
+  border: 1px solid var(--color-primary);
   border-radius: 4px;
-  background: white;
-  color: #007bff;
+  background: var(--bg-color-secondary);
+  color: var(--color-primary);
   cursor: pointer;
 }
 
 .add-event-btn {
-  background: #007bff;
-  color: white;
+  background: var(--color-primary);
+  color: var(--text-color);
 }
 
 .today-btn:hover, .add-event-btn:hover {
@@ -469,57 +469,57 @@ defineExpose({
 
 .calendar-view {
   flex: 1;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: white;
+  background: var(--bg-color-secondary);
   overflow: hidden;
 }
 
 .week-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  background: #f8f9fa;
-  border-bottom: 1px solid #ddd;
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .week-day {
   padding: 12px;
   text-align: center;
   font-weight: bold;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
-  background: #ddd;
+  background: var(--border-color);
 }
 
 .calendar-date {
   min-height: 80px;
   padding: 8px;
-  background: white;
+  background: var(--bg-color-secondary);
   cursor: pointer;
   position: relative;
 }
 
 .calendar-date:hover {
-  background: #f8f9fa;
+  background: var(--bg-color);
 }
 
 .calendar-date.other-month {
-  color: #ccc;
-  background: #f9f9f9;
+  color: var(--text-color-secondary);
+  background: var(--bg-color);
 }
 
 .calendar-date.today {
-  background: #e3f2fd;
+  background: var(--color-primary-bg, #e3f2fd);
 }
 
 .calendar-date.selected {
-  background: #007bff;
-  color: white;
+  background: var(--color-primary);
+  color: var(--text-color);
 }
 
 .calendar-date.has-events .date-number {
@@ -547,23 +547,23 @@ defineExpose({
 }
 
 .event-meeting {
-  background: #007bff;
-  color: white;
+  background: var(--color-primary);
+  color: var(--text-color);
 }
 
 .event-reminder {
-  background: #28a745;
-  color: white;
+  background: var(--color-success);
+  color: var(--text-color);
 }
 
 .event-deadline {
-  background: #dc3545;
-  color: white;
+  background: var(--color-error);
+  color: var(--text-color);
 }
 
 .event-personal {
-  background: #6c757d;
-  color: white;
+  background: var(--color-secondary);
+  color: var(--text-color);
 }
 
 .more-events {
@@ -575,20 +575,20 @@ defineExpose({
 .selected-date-events {
   margin-top: 16px;
   padding: 16px;
-  background: white;
+  background: var(--bg-color-secondary);
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   max-height: 300px;
   overflow-y: auto;
 }
 
 .selected-date-events h4 {
   margin: 0 0 12px 0;
-  color: #333;
+  color: var(--text-color);
 }
 
 .no-events {
-  color: #666;
+  color: var(--text-color-secondary);
   text-align: center;
   padding: 20px;
 }
@@ -603,30 +603,30 @@ defineExpose({
   display: flex;
   gap: 12px;
   padding: 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   border-left: 4px solid;
 }
 
 .event-item.event-meeting {
-  border-left-color: #007bff;
+  border-left-color: var(--color-primary);
 }
 
 .event-item.event-reminder {
-  border-left-color: #28a745;
+  border-left-color: var(--color-success);
 }
 
 .event-item.event-deadline {
-  border-left-color: #dc3545;
+  border-left-color: var(--color-error);
 }
 
 .event-item.event-personal {
-  border-left-color: #6c757d;
+  border-left-color: var(--color-secondary);
 }
 
 .event-time {
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   min-width: 50px;
 }
 
@@ -637,11 +637,11 @@ defineExpose({
 .event-title {
   font-weight: bold;
   margin-bottom: 4px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .event-description {
-  color: #666;
+  color: var(--text-color-secondary);
   font-size: 14px;
 }
 
@@ -652,16 +652,16 @@ defineExpose({
 
 .edit-btn, .delete-btn {
   padding: 4px 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: white;
+  background: var(--bg-color-secondary);
   cursor: pointer;
   font-size: 12px;
 }
 
 .delete-btn {
-  color: #dc3545;
-  border-color: #dc3545;
+  color: var(--color-error);
+  border-color: var(--color-error);
 }
 
 .event-form-overlay {
@@ -678,7 +678,7 @@ defineExpose({
 }
 
 .event-form {
-  background: white;
+  background: var(--bg-color-secondary);
   padding: 24px;
   border-radius: 8px;
   width: 400px;
@@ -696,7 +696,7 @@ defineExpose({
 
 .form-header h3 {
   margin: 0;
-  color: #333;
+  color: var(--text-color);
 }
 
 .close-btn {
@@ -704,7 +704,7 @@ defineExpose({
   background: none;
   font-size: 24px;
   cursor: pointer;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .form-group {
@@ -721,7 +721,7 @@ defineExpose({
   display: block;
   margin-bottom: 4px;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .form-group input,
@@ -729,7 +729,7 @@ defineExpose({
 .form-group select {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
 }
@@ -747,20 +747,20 @@ defineExpose({
 
 .cancel-btn, .save-btn {
   padding: 8px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
 }
 
 .cancel-btn {
-  background: white;
-  color: #666;
+  background: var(--bg-color-secondary);
+  color: var(--text-color-secondary);
 }
 
 .save-btn {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+  background: var(--color-primary);
+  color: var(--text-color);
+  border-color: var(--color-primary);
 }
 
 .cancel-btn:hover, .save-btn:hover {

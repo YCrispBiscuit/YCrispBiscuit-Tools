@@ -79,8 +79,8 @@ const formatTime = (timestamp: number) => {
 }
 
 .message-item.own-message .message-body {
-  background-color: #5865f2;
-  color: #fff;
+  background-color: var(--color-primary);
+  color: var(--text-color);
 }
 
 .message-avatar {
@@ -92,8 +92,8 @@ const formatTime = (timestamp: number) => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #5865f2;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--text-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,7 +115,7 @@ const formatTime = (timestamp: number) => {
 
 .sender-name {
   font-weight: 600;
-  color: #f2f3f5;
+  color: var(--text-color);
   font-size: 16px;
   cursor: pointer;
 }
@@ -126,13 +126,13 @@ const formatTime = (timestamp: number) => {
 
 .message-time {
   font-size: 12px;
-  color: #96989d;
+  color: var(--text-color-secondary);
   font-weight: 400;
 }
 
 .encrypted-indicator {
   font-size: 12px;
-  color: #57f287;
+  color: var(--color-success);
   margin-left: 4px;
 }
 
@@ -148,12 +148,12 @@ const formatTime = (timestamp: number) => {
   word-wrap: break-word;
   font-size: 16px;
   line-height: 1.375;
-  color: #dcddde;
+  color: var(--text-color);
 }
 
 /* 链接样式 */
 .message-body a {
-  color: #00aff4;
+  color: var(--color-primary);
   text-decoration: none;
 }
 
@@ -163,8 +163,8 @@ const formatTime = (timestamp: number) => {
 
 /* 代码块样式 */
 .message-body code {
-  background-color: #2f3136;
-  color: #f8f8f2;
+  background-color: var(--code-bg);
+  color: var(--text-color);
   padding: 2px 4px;
   border-radius: 3px;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
@@ -172,11 +172,11 @@ const formatTime = (timestamp: number) => {
 }
 
 .message-body pre {
-  background-color: #2f3136;
-  color: #f8f8f2;
+  background-color: var(--code-bg);
+  color: var(--text-color);
   padding: 12px;
   border-radius: 4px;
-  border-left: 4px solid #4f545c;
+  border-left: 4px solid var(--border-color);
   margin: 8px 0;
   overflow-x: auto;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
@@ -186,10 +186,10 @@ const formatTime = (timestamp: number) => {
 
 /* 引用样式 */
 .message-body blockquote {
-  border-left: 4px solid #4f545c;
+  border-left: 4px solid var(--border-color);
   margin: 8px 0;
   padding-left: 12px;
-  color: #b9bbbe;
+  color: var(--text-color-secondary);
 }
 
 /* Emoji样式 */
@@ -201,15 +201,15 @@ const formatTime = (timestamp: number) => {
 
 /* 提及样式 */
 .message-body .mention {
-  background-color: rgba(88, 101, 242, 0.3);
-  color: #dee0fc;
+  background-color: var(--color-primary-bg, rgba(88,101,242,0.15));
+  color: var(--color-primary-text, #5865f2);
   padding: 0 2px;
   border-radius: 3px;
   font-weight: 500;
 }
 
 .message-body .mention:hover {
-  background-color: #5865f2;
-  color: #fff;
+  background-color: var(--color-primary);
+  color: var(--text-color);
 }
 </style>

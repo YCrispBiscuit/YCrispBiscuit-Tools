@@ -274,7 +274,7 @@ defineExpose({
 .grid-layout-workspace {
   width: 100%;
   height: 100%;
-  background: var(--workspace-bg, #1a1a1a);
+  background: var(--bg-color);
 }
 
 .workspace-container {
@@ -290,8 +290,8 @@ defineExpose({
 }
 
 .grid-item {
-  background: var(--panel-bg, #2d2d2d);
-  border: 1px solid var(--border-color, #404040);
+  background: var(--bg-color-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -308,13 +308,13 @@ defineExpose({
 }
 
 :deep(.vue-grid-item.vue-grid-placeholder) {
-  background: var(--placeholder-bg, rgba(0, 122, 204, 0.3));
-  border: 2px dashed var(--placeholder-border, #007acc);
+  background: var(--bg-color-hover, rgba(0,122,204,0.3));
+  border: 2px dashed var(--color-primary);
   border-radius: 8px;
 }
 
 :deep(.vue-resizable-handle) {
-  background: var(--resize-handle-bg, #007acc);
+  background: var(--color-primary);
   opacity: 0;
   transition: opacity 0.2s ease;
 }

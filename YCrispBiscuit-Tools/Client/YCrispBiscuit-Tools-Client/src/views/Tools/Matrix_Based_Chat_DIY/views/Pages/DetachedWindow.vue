@@ -554,8 +554,8 @@ onUnmounted(() => {
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #444;
-  border-top: 3px solid #007acc;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -575,7 +575,7 @@ onUnmounted(() => {
 .empty-state h3 {
   margin: 0 0 8px 0;
   font-size: 18px;
-  color: #e0e0e0;
+  color: var(--text-color);
 }
 
 .error-state p,
@@ -599,7 +599,7 @@ onUnmounted(() => {
 }
 
 .retry-button:hover {
-  background: #005a9e;
+  background: var(--color-primary-bg);
 }
 
 /* 拖拽提示 */
@@ -608,8 +608,8 @@ onUnmounted(() => {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 122, 204, 0.9);
-  color: white;
+  background: var(--color-primary-bg, rgba(0,122,204,0.9));
+  color: var(--text-color);
   padding: 12px 20px;
   border-radius: 6px;
   font-size: 14px;

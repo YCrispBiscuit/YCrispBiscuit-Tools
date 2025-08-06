@@ -294,8 +294,8 @@ const closeWindow = (windowId: string) => {
 
 .floating-window {
   position: fixed;
-  background: var(--window-bg, #2d2d2d);
-  border: 1px solid var(--border-color, #404040);
+  background: var(--bg-color-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   overflow: hidden;
@@ -317,8 +317,8 @@ const closeWindow = (windowId: string) => {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: var(--header-bg, #3c3c3c);
-  border-bottom: 1px solid var(--border-color, #404040);
+  background: var(--bg-color-tertiary);
+  border-bottom: 1px solid var(--border-color);
   cursor: move;
   user-select: none;
 }
@@ -326,7 +326,7 @@ const closeWindow = (windowId: string) => {
 .window-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary, #fff);
+  color: var(--text-color);
 }
 
 .window-controls {
@@ -349,18 +349,18 @@ const closeWindow = (windowId: string) => {
 }
 
 .control-btn.minimize {
-  background: #ffc107;
-  color: #000;
+  background: var(--color-warning);
+  color: var(--text-color);
 }
 
 .control-btn.maximize {
-  background: #28a745;
-  color: #fff;
+  background: var(--color-success);
+  color: var(--text-color);
 }
 
 .control-btn.close {
-  background: #dc3545;
-  color: #fff;
+  background: var(--color-error);
+  color: var(--text-color);
 }
 
 .control-btn:hover {
@@ -384,9 +384,9 @@ const closeWindow = (windowId: string) => {
     transparent 0%,
     transparent 40%,
     var(--resize-handle-color, #666) 40%,
-    var(--resize-handle-color, #666) 50%,
-    transparent 50%,
-    transparent 90%,
+    var(--border-color) 40%,
+    var(--border-color) 50%,
+    var(--border-color) 90%
     var(--resize-handle-color, #666) 90%
   );
 }
@@ -396,7 +396,7 @@ const closeWindow = (windowId: string) => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--text-secondary, #888);
+  color: var(--text-color-secondary);
   font-style: italic;
 }
 </style>

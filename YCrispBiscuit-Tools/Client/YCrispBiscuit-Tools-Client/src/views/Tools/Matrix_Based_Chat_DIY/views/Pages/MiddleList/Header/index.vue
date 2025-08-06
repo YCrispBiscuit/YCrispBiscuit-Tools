@@ -18,8 +18,8 @@ defineProps<Props>()
 <style scoped>
 .middle-header {
   padding: 16px;
-  border-bottom: 1px solid #36393f;
-  background-color: #2f3136;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-color-secondary);
   flex-shrink: 0;
 }
 
@@ -31,13 +31,13 @@ defineProps<Props>()
 
 .header-content h3 {
   margin: 0;
-  color: #fff;
+  color: var(--text-color);
   font-size: 16px;
   font-weight: 600;
 }
 
 .user-id {
   font-size: 12px;
-  color: #96989d;
+  color: var(--text-color-secondary);
 }
 </style>

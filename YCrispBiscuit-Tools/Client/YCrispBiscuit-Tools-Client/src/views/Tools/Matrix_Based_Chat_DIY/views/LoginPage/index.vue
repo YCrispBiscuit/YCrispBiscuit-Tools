@@ -9,6 +9,7 @@
         v-if="!isRegisterMode"
         ref="loginFormRef"
         @login="handleLoginAttempt" 
+        @auto-login-success="handleAutoLoginSuccess"
         @switch-to-register="switchToRegister"
       />
 
@@ -25,8 +26,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import LoginForm from '../../components/Common/LoginForm/index.vue'  // 直接导入vue文件
-import RegisterForm from '../../components/Common/RegisterForm/index.vue'  // 导入注册表单
+import LoginForm from '../../components/Common/LoginForm'  // 直接导入vue文件
+import RegisterForm from '../../components/Common/RegisterForm'  // 导入注册表单
 import { matrixClient } from '../../services/matrix/client'
 import type { MatrixLoginConfig, MatrixRegisterConfig, MatrixUser } from '../../types'
 
@@ -51,6 +52,39 @@ const emit = defineEmits<{
 }>()
 
 // ===== 事件处理函数 =====
+
+/**
+ * 处理自动登录成功
+ * 当组件加载时自动登录成功时调用
+ * @param userInfo - 自动登录成功的用户信息
+ */
+const handleAutoLoginSuccess = async (userInfo: MatrixUser) => {
+  console.log('处理自动登录成功...')
+  
+  try {
+    // 第1步：初始化加密功能（可选，失败不影响基础功能）
+    console.log('步骤1: 初始化端到端加密...')
+    await matrixClient.初始化加密功能()
+    
+    // 第2步：启动客户端同步
+    console.log('步骤2: 启动客户端同步...')
+    matrixClient.启动客户端同步()
+    
+    // 第3步：通知父组件登录成功
+    console.log('✅ 自动登录流程完成，通知应用切换到聊天页面')
+    emit('login-success', userInfo)
+    
+  } catch (错误: any) {
+    console.error('❌ 自动登录后续流程失败:', 错误)
+    
+    // 自动登录失败时清理令牌，让用户手动登录
+    matrixClient.清除登录令牌()
+    
+    if (loginFormRef.value) {
+      loginFormRef.value.resetLoginState('自动登录失败，请手动登录')
+    }
+  }
+}
 
 /**
  * 处理用户登录尝试

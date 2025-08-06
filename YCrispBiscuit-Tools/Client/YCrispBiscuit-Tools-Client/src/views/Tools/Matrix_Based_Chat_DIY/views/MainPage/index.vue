@@ -7,6 +7,10 @@
                     @userInfo="handleUserInfo" @function-change="handleFunctionChange" />
             </div>
 
+            <!-- 拖拽分隔条 (只在频道列表展开时显示) -->
+            <div  class="resizer" 
+                title=""></div>
+
             <!-- 中间频道/功能区域组件 -->
             <div v-if="currentFunctionNeedsMiddleList" class="channel-sidebar" :style="{ width: channelSidebarWidth }">
                 <MiddleList :user-id="props.userId" :current-room-id="currentRoomId" :rooms="rooms"
@@ -43,23 +47,68 @@
             </div>
         </div>
 
+        <!-- 主题切换悬浮按钮 -->
+        <div class="theme-toggle-btn" @click="toggleTheme">
+            <span v-if="theme==='light'">L</span>
+            <span v-else>D</span>
+        </div>
         <!-- 设备验证弹窗 -->
         <DeviceVerification ref="deviceVerificationRef" />
     </div>
 </template>
 
 <script setup lang="ts">
+
+
+
+
 import { ref, computed, onMounted, provide } from 'vue'
-import LeftList from '../Pages/LeftList/index.vue'
-import MiddleList from '../Pages/MiddleList/index.vue'
+import LeftList from '../Pages/LeftList'
+import MiddleList from '../Pages/MiddleList'
 import WorkspaceManager from '../Pages/WorkspaceManager'
-import DeviceVerification from '../../components/DeviceVerification/index.vue'
+import DeviceVerification from '../../components/DeviceVerification'
 import { matrixClient } from '../../services/matrix/client'
 import { roomService } from '../../services/matrix/rooms'
 import { messageService } from '../../services/matrix/messages'
 import type { MatrixMessage, MatrixRoom } from '../../types'
 
 import UserInfo from '../../views/Pages/RightContent/UserInfo'
+
+
+
+
+
+
+// 主题切换逻辑
+
+const theme = ref('light');
+function setTheme(t: 'light' | 'dark') {
+  theme.value = t;
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+}
+function toggleTheme() {
+  setTheme(theme.value === 'light' ? 'dark' : 'light');
+}
+onMounted(() => {
+  const saved = localStorage.getItem('theme');
+  setTheme(saved === 'dark' ? 'dark' : 'light');
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Chat页面组件
@@ -149,8 +198,8 @@ const handleFunctionChange = (newFunction: 'rooms' | 'userInfo') => {
 
 // 处理登出
 const handleLogout = () => {
-    // 退出但保留登录参数，方便下次登录
-    matrixClient.用户登出(true)  // true表示保留登录参数
+    // 退出但保留用户名，清除访问令牌
+    matrixClient.用户登出(true)  // true表示保留用户名
     emit('logout')
 }
 
@@ -385,6 +434,16 @@ const shouldShowChannelToggle = () => {
 onMounted(() => {
     initializeChat()
 
+    // 监听Matrix重新登录事件
+    const handleMatrixRelogin = (event: any) => {
+        const reason = event.detail?.reason || '需要重新登录'
+        console.log('🔄 MainPage收到重新登录请求:', reason)
+        
+        // 直接触发登出，回到登录页面
+        handleLogout()
+    }
+    window.addEventListener('matrix:needRelogin', handleMatrixRelogin)
+
     // 添加快捷键测试设备验证弹窗（Ctrl+V）
     const handleKeydown = (event: KeyboardEvent) => {
         if (event.ctrlKey && event.key === 'v') {
@@ -397,6 +456,7 @@ onMounted(() => {
     // 清理函数
     const cleanup = () => {
         document.removeEventListener('keydown', handleKeydown)
+        window.removeEventListener('matrix:needRelogin', handleMatrixRelogin)
     }
 
     // 返回清理函数给onUnmounted使用
@@ -420,13 +480,42 @@ provide('chatContext', {
 </script>
 
 <style scoped>
+/* 主题切换按钮样式 */
+.theme-toggle-btn {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 9999;
+  width: 48px;
+  height: 48px;
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  border: 2px solid var(--border-color);
+  transition: background 0.3s, color 0.3s;
+}
+.theme-toggle-btn:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+
+
+
+
 /* Discord风格布局 */
 .matrix-chat-app {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: #36393f;
-    color: #dcddde;
+     background-color: var(--bg-color-secondary);
+    color: var(--text-color);
 }
 
 .discord-layout {
@@ -514,8 +603,8 @@ provide('chatContext', {
 
 /* 中间频道/功能区域 */
 .channel-sidebar {
-    background-color: #2f3136;
-    border-right: 1px solid #40444b;
+   background-color: var(--bg-color-secondary);
+    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     transition: width 0.3s ease;
@@ -552,8 +641,8 @@ provide('chatContext', {
 
 .channels-header {
     padding: 16px;
-    border-bottom: 1px solid #40444b;
-    background-color: #36393f;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-color-secondary);
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -565,21 +654,21 @@ provide('chatContext', {
 
 .function-header {
     padding: 16px;
-    border-bottom: 1px solid #40444b;
-    background-color: #36393f;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-color-secondary);
 }
 
 .channels-header h3,
 .function-header h3 {
     margin: 0 0 8px 0;
-    color: #fff;
+    color: var(--text-color);
     font-size: 16px;
     font-weight: 600;
 }
 
 .user-id {
     font-size: 12px;
-    color: #96989d;
+    color: var(--text-color-secondary);
 }
 
 .function-content {
@@ -596,7 +685,7 @@ provide('chatContext', {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background-color: #36393f;
+    background-color: var(--bg-color-secondary);
     position: relative;
 }
 
@@ -612,13 +701,13 @@ provide('chatContext', {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #40444b;
-    background-color: #36393f;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-color-secondary);
 }
 
 .chat-header h4 {
     margin: 0;
-    color: #fff;
+    color: var(--text-color);
     font-size: 16px;
     font-weight: 600;
 }
@@ -631,25 +720,25 @@ provide('chatContext', {
 
 .room-id {
     font-size: 12px;
-    color: #96989d;
+    color: var(--text-color-secondary);
 }
 
 .messages-container {
     flex: 1;
     overflow-y: auto;
     padding: 16px;
-    background-color: #36393f;
+   background-color: var(--bg-color-secondary);
 }
 
 .message-input-area {
     padding: 16px;
-    background-color: #36393f;
+     background-color: var(--bg-color-secondary);
 }
 
 .message-input {
     display: flex;
     gap: 8px;
-    background-color: #40444b;
+    background-color: var(--border-color);
     border-radius: 8px;
     padding: 12px;
 }
@@ -658,19 +747,19 @@ provide('chatContext', {
     flex: 1;
     background: transparent;
     border: none;
-    color: #dcddde;
+    color: var(--text-color);
     font-size: 14px;
     outline: none;
 }
 
 .message-input input::placeholder {
-    color: #96989d;
+    color: var(--text-color-secondary);
 }
 
 .send-button {
     padding: 8px 16px;
-    background-color: #5865f2;
-    color: white;
+    background-color: var(--color-primary);
+    color: var(--text-color);
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -680,11 +769,11 @@ provide('chatContext', {
 }
 
 .send-button:hover:not(:disabled) {
-    background-color: #4752c4;
+     background-color: var(--color-primary-hover, #4752c4);
 }
 
 .send-button:disabled {
-    background-color: #4f545c;
+    background-color: var(--color-secondary, #4f545c);
     cursor: not-allowed;
 }
 
@@ -702,14 +791,14 @@ provide('chatContext', {
 
 .welcome-message h2 {
     margin: 0 0 16px 0;
-    color: #fff;
+    color: var(--text-color);
     font-size: 24px;
     font-weight: 600;
 }
 
 .welcome-message p {
     margin: 0;
-    color: #96989d;
+    color: var(--text-color-secondary);
     font-size: 16px;
     line-height: 1.5;
 }
@@ -720,15 +809,15 @@ provide('chatContext', {
 }
 
 .messages-container::-webkit-scrollbar-track {
-    background: #2f3136;
+    background: var(--bg-color-secondary);
 }
 
 .messages-container::-webkit-scrollbar-thumb {
-    background: #202225;
+    background: var(--scrollbar-thumb-bg, #202225);
     border-radius: 4px;
 }
 
 .messages-container::-webkit-scrollbar-thumb:hover {
-    background: #40444b;
+     background: var(--scrollbar-thumb-hover-bg, #40444b);
 }
 </style>

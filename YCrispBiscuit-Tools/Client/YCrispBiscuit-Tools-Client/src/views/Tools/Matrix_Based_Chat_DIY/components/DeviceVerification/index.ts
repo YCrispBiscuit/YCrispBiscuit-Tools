@@ -1,1 +1,3 @@
-export { default } from './index.vue'
+import DeviceVerification from './index.vue'
+
+export default DeviceVerification

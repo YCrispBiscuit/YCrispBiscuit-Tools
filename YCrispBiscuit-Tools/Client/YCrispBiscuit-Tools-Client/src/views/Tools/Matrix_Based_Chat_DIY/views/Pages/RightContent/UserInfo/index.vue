@@ -65,10 +65,10 @@ const logout = () => {
 
 <style scoped>
 .discord-user-card {
-  background: #2f3136;
-  color: #dcddde;
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
   border-radius: 16px;
-  box-shadow: 0 4px 32px 0 #00000033;
+  box-shadow: 0 4px 32px 0 var(--shadow-color, #00000033);
   max-width: 1020px;
   margin: 48px auto 0 auto;
   padding: 40px 40px 32px 40px;
@@ -87,12 +87,12 @@ const logout = () => {
   width: 112px;
   height: 112px;
   border-radius: 50%;
-  background: #23272a;
+  background: var(--bg-color-tertiary);
+  box-shadow: 0 2px 12px var(--shadow-color, #00000033);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 12px #00000033;
   flex-shrink: 0;
 }
 .avatar-img {
@@ -110,19 +110,19 @@ const logout = () => {
   margin-top: 8px;
 }
 .user-display {
-  color: #fff;
+ color: var(--text-color);
   font-size: 26px;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
 .user-id {
   font-size: 15px;
-  color: #96989d;
+  color: var(--text-color-secondary);
   margin-bottom: 2px;
 }
 .user-status {
   font-size: 14px;
-  color: #43b581;
+  color: var(--color-success);
   margin-bottom: 10px;
 }
 .user-stats-row {
@@ -137,11 +137,11 @@ const logout = () => {
   font-size: 14px;
 }
 .stat-label {
-  color: #96989d;
+  color: var(--text-color-secondary);
   margin-bottom: 2px;
 }
 .stat-value {
-  color: #fff;
+  color: var(--text-color);
   font-weight: bold;
   font-size: 18px;
 }
@@ -155,15 +155,16 @@ const logout = () => {
   padding: 12px 40px;
   border: none;
   border-radius: 10px;
-  background: #ed4245;
-  color: #fff;
+ background: var(--color-error);
+  color: var(--text-color);
+  box-shadow: 0 2px 8px var(--shadow-color, #00000022);
   font-size: 17px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
-  box-shadow: 0 2px 8px #00000022;
+ 
 }
 .logout-btn:hover {
-  background: #c23e41;
+  background: var(--color-error-hover);
 }
 </style>

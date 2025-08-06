@@ -286,8 +286,8 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
 <style scoped>
 .grid-panel {
   position: absolute;
-  background: #2d2d2d;
-  border: 1px solid #444;
+  background: var(--bg-color-secondary);
+  border: 1px solid var(--border-color);
   border-radius: clamp(4px, 0.5vw, 8px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   display: flex;
@@ -302,8 +302,8 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
 }
 
 .panel-header {
-  background: #3c3c3c;
-  border-bottom: 1px solid #444;
+  background: var(--bg-color-tertiary);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -386,8 +386,8 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
   align-items: center;
   gap: clamp(2px, 0.5vw, 6px);
   padding: clamp(4px, 1vh, 8px) clamp(6px, 1.5vw, 12px);
-  background: transparent;
-  border-right: 1px solid #444;
+  background: var(--bg-color-secondary);
+  border-right: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -396,12 +396,12 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
 }
 
 .tab:hover {
-  background: #484848;
+  background: var(--bg-color-hover);
 }
 
 .tab.active {
-  background: #007acc;
-  color: white;
+  background: var(--color-primary);
+  color: var(--text-color);
 }
 
 .tab-title {
@@ -435,7 +435,7 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
 .tab-close:hover,
 .tab-detach:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-color-hover, rgba(255,255,255,0.1));
 }
 
 .panel-controls {
@@ -446,7 +446,7 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
 .control-btn {
   background: none;
   border: none;
-  color: #ccc;
+  color: var(--text-color-tertiary, #ccc);
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 3px;
@@ -455,14 +455,14 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
 }
 
 .control-btn:hover {
-  background: #ff4444;
-  color: white;
+  background: var(--color-error);
+  color: var(--text-color);
 }
 
 .panel-content {
   flex: 1;
   overflow: hidden;
-  background: #1e1e1e;
+  background: var(--bg-color-secondary);
 }
 
 .no-content {
@@ -470,7 +470,7 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #888;
+  color: var(--text-color-secondary);
   font-size: 14px;
 }
 
@@ -482,7 +482,7 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
 }
 
 .resize-handle:hover {
-  background: #007acc;
+  background: var(--color-primary);
 }
 
 .resize-right {
@@ -517,10 +517,10 @@ const startResize = (direction: 'right' | 'bottom' | 'corner', event: MouseEvent
   width: 0;
   height: 0;
   border-left: 6px solid transparent;
-  border-bottom: 6px solid #666;
+  border-bottom: 6px solid var(--text-color-secondary);
 }
 
 .resize-corner:hover::after {
-  border-bottom-color: #007acc;
+  border-bottom-color: var(--color-primary);
 }
 </style>

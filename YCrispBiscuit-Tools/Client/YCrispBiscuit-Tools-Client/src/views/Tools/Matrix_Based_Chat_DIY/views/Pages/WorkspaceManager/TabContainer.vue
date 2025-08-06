@@ -168,7 +168,7 @@ const detachTab = (tab: TabItem | null) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--bg-color, #1e1e1e);
+  background: var(--bg-color-secondary);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -176,8 +176,8 @@ const detachTab = (tab: TabItem | null) => {
 .tab-header {
   display: flex;
   align-items: center;
-  background: var(--tab-header-bg, #2d2d2d);
-  border-bottom: 1px solid var(--border-color, #404040);
+  background: var(--bg-color-tertiary);
+  border-bottom: 1px solid var(--border-color);
   padding: 0;
   min-height: 32px;
   overflow-x: auto;
@@ -188,8 +188,8 @@ const detachTab = (tab: TabItem | null) => {
   display: flex;
   align-items: center;
   padding: 6px 12px;
-  background: var(--tab-bg, #3c3c3c);
-  border-right: 1px solid var(--border-color, #404040);
+  background: var(--bg-color-secondary);
+  border-right: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -198,12 +198,12 @@ const detachTab = (tab: TabItem | null) => {
 }
 
 .tab:hover {
-  background: var(--tab-hover-bg, #4a4a4a);
+  background: var(--bg-color-hover);
 }
 
 .tab.active {
-  background: var(--tab-active-bg, #007acc);
-  color: white;
+  background: var(--color-primary);
+  color: var(--text-color);
 }
 
 .tab-title {
@@ -223,7 +223,7 @@ const detachTab = (tab: TabItem | null) => {
 
 .tab-close:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-color-hover, rgba(255,255,255,0.1));
 }
 
 .tab-actions {
@@ -257,16 +257,16 @@ const detachTab = (tab: TabItem | null) => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--text-secondary, #888);
+  color: var(--text-color-secondary);
   font-size: 14px;
 }
 
 .context-menu {
   position: fixed;
-  background: var(--menu-bg, #2d2d2d);
-  border: 1px solid var(--border-color, #404040);
+  background: var(--bg-color-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px var(--shadow-color, rgba(0,0,0,0.3));
   z-index: 9999;
   min-width: 120px;
 }
@@ -279,7 +279,7 @@ const detachTab = (tab: TabItem | null) => {
 }
 
 .menu-item:hover {
-  background: var(--menu-item-hover, #4a4a4a);
+  background: var(--bg-color-hover);
 }
 
 .context-menu-overlay {
@@ -296,7 +296,7 @@ const detachTab = (tab: TabItem | null) => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--text-secondary, #888);
+  color: var(--text-color-secondary);
   font-style: italic;
 }
 </style>

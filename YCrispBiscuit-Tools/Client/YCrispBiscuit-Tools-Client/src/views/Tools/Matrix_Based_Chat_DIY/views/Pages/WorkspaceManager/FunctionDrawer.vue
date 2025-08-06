@@ -123,7 +123,7 @@ const systemFunctions = computed(() =>
 .drawer-content {
   width: clamp(280px, 25vw, 380px);
   height: 100%;
-  background-color: #2f3136;
+  background-color: var(--drawer-bg);
   display: flex;
   flex-direction: column;
   box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
@@ -131,16 +131,16 @@ const systemFunctions = computed(() =>
 
 .drawer-header {
   height: clamp(50px, 8vh, 70px);
-  background-color: #36393f;
+  background-color: var(--bg-color-tertiary);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 clamp(15px, 3vw, 25px);
-  border-bottom: 1px solid #4f545c;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .drawer-header h3 {
-  color: #dcddde;
+  color: var(--text-color);
   margin: 0;
   font-size: 16px;
   font-weight: 600;
@@ -149,7 +149,7 @@ const systemFunctions = computed(() =>
 .close-btn {
   background: none;
   border: none;
-  color: #b9bbbe;
+  color: var(--text-color-tertiary);
   font-size: 20px;
   cursor: pointer;
   padding: 4px;
@@ -158,8 +158,8 @@ const systemFunctions = computed(() =>
 }
 
 .close-btn:hover {
-  background-color: #ed4245;
-  color: white;
+  background-color: var(--color-error-bg, #3a1a1a);
+  color: var(--text-color);
 }
 
 .drawer-body {
@@ -173,7 +173,7 @@ const systemFunctions = computed(() =>
 }
 
 .function-category h4 {
-  color: #dcddde;
+  color: var(--text-color-secondary);
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
@@ -191,7 +191,7 @@ const systemFunctions = computed(() =>
   display: flex;
   align-items: center;
   padding: 12px;
-  background-color: #40444b;
+  background-color: var(--bg-color-tertiary);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
@@ -200,9 +200,9 @@ const systemFunctions = computed(() =>
 }
 
 .function-item:hover {
-  background-color: #5865f2;
+  background-color: var(--function-hover-bg, #e6e8fa);
   transform: translateX(4px);
-  border-color: #4752c4;
+  border-color: var(--color-primary);
 }
 
 .function-item:active {
@@ -226,14 +226,14 @@ const systemFunctions = computed(() =>
 }
 
 .function-name {
-  color: #dcddde;
+  color: var(--text-color);
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 2px;
 }
 
 .function-desc {
-  color: #b9bbbe;
+  color: var(--text-color-tertiary);
   font-size: 12px;
   opacity: 0.8;
   line-height: 1.3;
@@ -244,7 +244,7 @@ const systemFunctions = computed(() =>
 
 /* 点击状态 */
 .function-item:hover {
-  cursor: grab;
+  cursor: pointer;
 }
 
 .function-item:active {
@@ -257,16 +257,16 @@ const systemFunctions = computed(() =>
 }
 
 .drawer-body::-webkit-scrollbar-track {
-  background: #2f3136;
+  background: var(--drawer-bg);
 }
 
 .drawer-body::-webkit-scrollbar-thumb {
-  background: #4f545c;
+  background: var(--border-color);
   border-radius: 3px;
 }
 
 .drawer-body::-webkit-scrollbar-thumb:hover {
-  background: #5865f2;
+  background: var(--color-primary);
 }
 
 /* 响应式设计 */

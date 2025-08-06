@@ -30,7 +30,7 @@ defineProps<Props>()
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  background-color: #36393f;
+  background-color: var(--bg-color-secondary);
 }
 
 /* 滚动条样式 */
@@ -39,15 +39,15 @@ defineProps<Props>()
 }
 
 .messages-container::-webkit-scrollbar-track {
-  background: #2f3136;
+  background: var(--scrollbar-track-bg);
 }
 
 .messages-container::-webkit-scrollbar-thumb {
-  background: #202225;
+  background: var(--scrollbar-thumb-bg);
   border-radius: 4px;
 }
 
 .messages-container::-webkit-scrollbar-thumb:hover {
-  background: #40444b;
+  background: var(--scrollbar-thumb-hover-bg);
 }
 </style>

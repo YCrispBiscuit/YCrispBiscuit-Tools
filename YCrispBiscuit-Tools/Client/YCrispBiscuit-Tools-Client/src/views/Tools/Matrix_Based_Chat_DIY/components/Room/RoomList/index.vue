@@ -110,7 +110,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #2f3136;
+  background-color: var(--bg-color-secondary);
 }
 
 .room-list-header {
@@ -118,12 +118,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16px 12px;
-  border-bottom: 1px solid #40444b;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .room-list-header h4 {
   margin: 0;
-  color: #96989d;
+  color: var(--text-color-secondary);
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -133,17 +133,17 @@ onMounted(() => {
 .refresh-btn {
   padding: 4px 8px;
   background-color: transparent;
-  border: 1px solid #40444b;
+  border: 1px solid var(--border-color);
   border-radius: 3px;
-  color: #96989d;
+  color: var(--text-color-secondary);
   cursor: pointer;
   font-size: 11px;
   transition: all 0.2s ease;
 }
 
 .refresh-btn:hover:not(:disabled) {
-  background-color: #40444b;
-  color: #dcddde;
+  background-color: var(--border-color);
+  color: var(--text-color);
 }
 
 .refresh-btn:disabled {
@@ -169,27 +169,27 @@ onMounted(() => {
 }
 
 .room-item:hover {
-  background-color: #40444b;
+  background-color: var(--border-color);
 }
 
 .room-item.active {
-  background-color: #5865f2;
+  background-color: var(--color-primary);
 }
 
 .room-item.active .room-name {
-  color: #fff !important;
+  color: var(--text-color) !important;
 }
 
 .room-item::before {
   content: '#';
-  color: #72767d;
+  color: var(--text-color-secondary);
   font-weight: 600;
   font-size: 16px;
   line-height: 1;
 }
 
 .room-item.active::before {
-  color: #fff;
+  color: var(--text-color);
 }
 
 .room-info {
@@ -199,7 +199,7 @@ onMounted(() => {
 
 .room-name {
   display: block;
-  color: #96989d;
+  color: var(--text-color-secondary);
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 2px;
@@ -209,12 +209,12 @@ onMounted(() => {
 }
 
 .room-item:hover .room-name:not(.active) {
-  color: #dcddde;
+  color: var(--text-color);
 }
 
 .room-id {
   font-size: 11px;
-  color: #72767d;
+  color: var(--text-color-secondary);
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -223,7 +223,7 @@ onMounted(() => {
 
 .room-topic {
   font-size: 11px;
-  color: #72767d;
+  color: var(--text-color-secondary);
   margin: 2px 0 0 0;
   line-height: 1.2;
   display: -webkit-box;
@@ -251,31 +251,31 @@ onMounted(() => {
 
 .encrypted-badge {
   font-size: 10px;
-  color: #faa61a;
-  background-color: rgba(250, 166, 26, 0.1);
+  color: var(--color-warning);
+  background-color: var(--color-warning-bg, rgba(250,166,26,0.1));
   padding: 2px 4px;
   border-radius: 8px;
-  border: 1px solid rgba(250, 166, 26, 0.2);
+  border: 1px solid var(--color-warning-border, rgba(250,166,26,0.2));
 }
 
 .last-activity {
   font-size: 10px;
-  color: #72767d;
+  color: var(--text-color-secondary);
 }
 
 .join-room-section {
   padding: 16px 12px;
-  border-top: 1px solid #40444b;
-  background-color: #36393f;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-color-secondary);
 }
 
 .join-room-section input {
   width: 100%;
   padding: 8px 12px;
-  background-color: #40444b;
-  border: 1px solid #40444b;
+  background-color: var(--border-color);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #dcddde;
+  color: var(--text-color);
   font-size: 14px;
   margin-bottom: 8px;
   box-sizing: border-box;
@@ -283,19 +283,19 @@ onMounted(() => {
 
 .join-room-section input:focus {
   outline: none;
-  border-color: #5865f2;
-  background-color: #36393f;
+  border-color: var(--color-primary);
+  background-color: var(--bg-color-secondary);
 }
 
 .join-room-section input::placeholder {
-  color: #72767d;
+  color: var(--text-color-secondary);
 }
 
 .join-room-section button {
   width: 100%;
   padding: 8px 12px;
-  background-color: #5865f2;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--text-color);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -305,11 +305,11 @@ onMounted(() => {
 }
 
 .join-room-section button:hover:not(:disabled) {
-  background-color: #4752c4;
+  background-color: var(--color-primary-hover, #4752c4);
 }
 
 .join-room-section button:disabled {
-  background-color: #4f545c;
+  background-color: var(--color-secondary, #4f545c);
   cursor: not-allowed;
 }
 
@@ -323,11 +323,11 @@ onMounted(() => {
 }
 
 .rooms-container::-webkit-scrollbar-thumb {
-  background: #202225;
+  background: var(--scrollbar-thumb-bg, #202225);
   border-radius: 3px;
 }
 
 .rooms-container::-webkit-scrollbar-thumb:hover {
-  background: #40444b;
+  background: var(--scrollbar-thumb-hover-bg, #40444b);
 }
 </style>

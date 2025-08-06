@@ -178,18 +178,18 @@ const getSplitPreviewStyle = (zone: DropZone) => {
 }
 
 .drop-zone-indicator.drop-zone-split {
-  background: rgba(74, 144, 226, 0.1);
-  border-color: #4a90e2;
+  background: var(--dropzone-split-bg, rgba(74, 144, 226, 0.1));
+  border-color: var(--dropzone-split-border, #4a90e2);
 }
 
 .drop-zone-indicator.drop-zone-merge {
-  background: rgba(82, 196, 26, 0.1);
-  border-color: #52c41a;
+  background: var(--dropzone-merge-bg, rgba(82, 196, 26, 0.1));
+  border-color: var(--dropzone-merge-border, #52c41a);
 }
 
 .drop-zone-indicator.drop-zone-replace {
-  background: rgba(250, 173, 20, 0.1);
-  border-color: #faad14;
+  background: var(--dropzone-replace-bg, rgba(250, 173, 20, 0.1));
+  border-color: var(--dropzone-replace-border, #faad14);
 }
 
 .drop-zone-indicator.active {
@@ -214,7 +214,7 @@ const getSplitPreviewStyle = (zone: DropZone) => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  color: #666;
+  color: var(--text-color-secondary);
   font-size: 12px;
   font-weight: 500;
   text-align: center;
@@ -222,7 +222,7 @@ const getSplitPreviewStyle = (zone: DropZone) => {
 }
 
 .drop-zone-indicator.active .drop-zone-content {
-  color: #333;
+  color: var(--text-color);
 }
 
 .drop-zone-icon {
@@ -231,7 +231,7 @@ const getSplitPreviewStyle = (zone: DropZone) => {
 
 .drop-zone-text {
   white-space: nowrap;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-color-secondary, rgba(255,255,255,0.9));
   padding: 2px 6px;
   border-radius: 3px;
   font-size: 10px;
@@ -248,13 +248,13 @@ const getSplitPreviewStyle = (zone: DropZone) => {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
+  background: var(--drag-preview-bg, rgba(0,0,0,0.8));
+  color: var(--text-color);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px var(--drag-preview-shadow, rgba(0,0,0,0.3));
 }
 
 .drag-preview-icon {
@@ -264,18 +264,18 @@ const getSplitPreviewStyle = (zone: DropZone) => {
 /* 分割预览线 */
 .split-preview-line {
   position: absolute;
-  background: #4a90e2;
+  background: var(--dropzone-split-border, #4a90e2);
   z-index: 9998;
-  box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
+  box-shadow: 0 0 6px var(--dropzone-split-shadow, rgba(74,144,226,0.5));
   animation: glow 1s infinite alternate;
 }
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
+    box-shadow: 0 0 6px var(--dropzone-split-shadow, rgba(74,144,226,0.5));
   }
   to {
-    box-shadow: 0 0 12px rgba(74, 144, 226, 0.8);
+    box-shadow: 0 0 12px var(--dropzone-split-shadow-hover, rgba(74,144,226,0.8));
   }
 }
 

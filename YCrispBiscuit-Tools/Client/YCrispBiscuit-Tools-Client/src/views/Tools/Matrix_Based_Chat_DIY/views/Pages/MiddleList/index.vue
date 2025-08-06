@@ -40,7 +40,7 @@ defineEmits<{
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #2f3136;
+  background-color: var(--bg-color-secondary);
 }
 
 .list-content {

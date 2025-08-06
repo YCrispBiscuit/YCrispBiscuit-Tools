@@ -18,9 +18,9 @@ defineProps<Props>()
 
 <style scoped>
 .chat-header {
-  background-color: #36393f;
+  background-color: var(--bg-color-secondary);
   padding: 16px;
-  border-bottom: 1px solid #40444b;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,7 +29,7 @@ defineProps<Props>()
 
 .chat-header h4 {
   margin: 0;
-  color: #fff;
+  color: var(--text-color);
   font-size: 16px;
   font-weight: 600;
 }
@@ -42,6 +42,6 @@ defineProps<Props>()
 
 .room-id {
   font-size: 12px;
-  color: #96989d;
+  color: var(--text-color-secondary);
 }
 </style>

@@ -1,1 +1,2 @@
-export { default } from './index.vue'
+import NotificationPanel from './index.vue'
+export default NotificationPanel

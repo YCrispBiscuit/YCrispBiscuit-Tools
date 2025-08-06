@@ -89,8 +89,8 @@ const formatDate = (date: Date) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #2f3136;
-  color: #dcddde;
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
 }
 
 .panel-header {
@@ -98,21 +98,21 @@ const formatDate = (date: Date) => {
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  border-bottom: 1px solid #40444b;
-  background: #36393f;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-color-tertiary, var(--bg-color-secondary));
 }
 
 .panel-header h3 {
   margin: 0;
-  color: #fff;
+  color: var(--text-color);
   font-size: 16px;
   font-weight: 600;
 }
 
 .upload-btn {
   padding: 6px 12px;
-  background: #43b581;
-  color: white;
+  background: var(--color-success);
+  color: var(--text-color);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -121,7 +121,7 @@ const formatDate = (date: Date) => {
 }
 
 .upload-btn:hover {
-  background: #3ca374;
+  background: var(--color-success-hover, #3ca374);
 }
 
 .file-list {
@@ -140,8 +140,8 @@ const formatDate = (date: Date) => {
 
 .upload-btn-large {
   padding: 12px 24px;
-  background: #5865f2;
-  color: white;
+  background: var(--color-primary);
+  color: var(--text-color);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -150,7 +150,7 @@ const formatDate = (date: Date) => {
 }
 
 .upload-btn-large:hover {
-  background: #4752c4;
+  background: var(--color-primary-hover);
 }
 
 .files-container {
@@ -162,14 +162,14 @@ const formatDate = (date: Date) => {
   align-items: center;
   padding: 12px;
   margin-bottom: 8px;
-  background: #40444b;
+  background: var(--bg-color-tertiary, var(--bg-color-secondary));
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .file-item:hover {
-  background: #4f545c;
+  background: var(--bg-color-hover, #4f545c);
 }
 
 .file-icon {
@@ -182,7 +182,7 @@ const formatDate = (date: Date) => {
 }
 
 .file-name {
-  color: #fff;
+  color: var(--text-color);
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 4px;
@@ -192,7 +192,7 @@ const formatDate = (date: Date) => {
   display: flex;
   gap: 12px;
   font-size: 12px;
-  color: #96989d;
+  color: var(--text-color-secondary);
 }
 
 .file-actions {
@@ -211,6 +211,6 @@ const formatDate = (date: Date) => {
 }
 
 .file-actions button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-color-hover, rgba(255,255,255,0.1));
 }
 </style>

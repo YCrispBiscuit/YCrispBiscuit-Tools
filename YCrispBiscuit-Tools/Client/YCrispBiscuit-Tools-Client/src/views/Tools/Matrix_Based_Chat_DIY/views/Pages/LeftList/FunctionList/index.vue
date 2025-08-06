@@ -30,7 +30,7 @@ const emit = defineEmits(['function-change'])
 .function-item {
   width: 48px;
   height: 48px;
-  background-color: #36393f;
+  background-color: var(--bg-color-secondary);
   border-radius: 24px;
   display: flex;
   align-items: center;
@@ -41,12 +41,12 @@ const emit = defineEmits(['function-change'])
 }
 
 .function-item:hover {
-  background-color: #7289da;
+  background-color: var(--color-primary);
   border-radius: 16px;
 }
 
 .function-item.active {
-  background-color: #7289da;
+  background-color: var(--color-primary);
   border-radius: 16px;
 }
 
@@ -58,7 +58,7 @@ const emit = defineEmits(['function-change'])
   transform: translateY(-50%);
   width: 4px;
   height: 40px;
-  background-color: #ffffff;
+  background-color: var(--bg-color);
   border-radius: 0 2px 2px 0;
 }
 
@@ -77,11 +77,11 @@ const emit = defineEmits(['function-change'])
 }
 
 .function-list::-webkit-scrollbar-thumb {
-  background: #36393f;
+  background: var(--bg-color-secondary);
   border-radius: 3px;
 }
 
 .function-list::-webkit-scrollbar-thumb:hover {
-  background: #40444b;
+  background: var(--border-color);
 }
 </style>

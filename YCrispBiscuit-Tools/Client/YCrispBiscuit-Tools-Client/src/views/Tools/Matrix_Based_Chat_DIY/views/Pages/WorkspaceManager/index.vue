@@ -304,8 +304,8 @@ defineExpose({
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  background: #1e1e1e;
-  color: #e0e0e0;
+  background: var(--bg-color);
+  color: var(--text-color);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -326,8 +326,8 @@ defineExpose({
   height: clamp(35px, 8vw, 50px);
   border: none;
   border-radius: clamp(6px, 1.5vw, 12px);
-  background: rgba(45, 45, 45, 0.9);
-  color: #e0e0e0;
+  background: var(--drawer-toggle-bg, #ececec);
+  color: var(--text-color);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -339,13 +339,13 @@ defineExpose({
 }
 
 .drawer-toggle:hover {
-  background: rgba(55, 55, 55, 0.9);
+  background: var(--drawer-toggle-hover-bg, #d4d4d4);
   transform: scale(1.05);
 }
 
 .drawer-toggle.active {
-  background: rgba(0, 122, 255, 0.8);
-  color: #fff;
+  background: var(--drawer-toggle-active-bg, #5865F2);
+  color: var(--text-color);
 }
 
 /* 移动端优化 */
@@ -438,17 +438,17 @@ defineExpose({
 }
 
 :deep(.workspace-manager *::-webkit-scrollbar-track) {
-  background: rgba(45, 45, 45, 0.3);
+  background: var(--bg-color-secondary, rgba(45,45,45,0.3));
   border-radius: 4px;
 }
 
 :deep(.workspace-manager *::-webkit-scrollbar-thumb) {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--border-color, rgba(255,255,255,0.2));
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
 :deep(.workspace-manager *::-webkit-scrollbar-thumb:hover) {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--color-primary, rgba(255,255,255,0.3));
 }
 </style>

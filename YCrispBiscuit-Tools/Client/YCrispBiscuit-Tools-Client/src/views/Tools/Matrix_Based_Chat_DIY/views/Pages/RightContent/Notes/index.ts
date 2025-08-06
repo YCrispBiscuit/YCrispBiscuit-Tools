@@ -1,1 +1,2 @@
-export { default } from './index.vue'
+import Notes from './index.vue'
+export default Notes

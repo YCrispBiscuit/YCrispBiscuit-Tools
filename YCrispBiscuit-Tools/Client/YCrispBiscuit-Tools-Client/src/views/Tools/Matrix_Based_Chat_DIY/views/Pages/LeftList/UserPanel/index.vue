@@ -18,8 +18,8 @@ const emit = defineEmits(['userInfo'])
 <style scoped>
 .user-panel {
   padding: 8px;
-  background-color: #292b2f;
-  border-top: 1px solid #36393f;
+  background-color: var(--bg-color-secondary);
+  border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,22 +37,22 @@ const emit = defineEmits(['userInfo'])
   transition: background 0.2s;
 }
 .user-center-btn:hover {
-  background: #36393f;
+  background: var(--bg-color-secondary);
 }
 .user-avatar {
   width: 32px;
   height: 32px;
-  background-color: #7289da;
+  background-color: var(--color-primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--text-color);
   font-size: 14px;
   font-weight: bold;
 }
 .user-center-label {
-  color: #fff;
+  color: var(--text-color);
   font-size: 15px;
   font-weight: 500;
 }

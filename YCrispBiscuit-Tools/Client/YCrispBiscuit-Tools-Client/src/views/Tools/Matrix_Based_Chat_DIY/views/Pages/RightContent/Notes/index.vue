@@ -444,7 +444,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #f8f9fa;
+  background: var(--bg-color);
 }
 
 .notes-header {
@@ -452,13 +452,13 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid #ddd;
-  background: white;
+  background: var(--bg-color-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .notes-header h3 {
   margin: 0;
-  color: #333;
+  color: var(--text-color);
 }
 
 .notes-actions {
@@ -468,16 +468,16 @@ defineExpose({
 
 .new-note-btn, .search-btn {
   padding: 8px 12px;
-  border: 1px solid #007bff;
+  border: 1px solid var(--color-primary);
   border-radius: 4px;
-  background: white;
-  color: #007bff;
+  background: var(--bg-color-secondary);
+  color: var(--color-primary);
   cursor: pointer;
 }
 
 .new-note-btn {
-  background: #007bff;
-  color: white;
+  background: var(--color-primary);
+  color: var(--text-color);
 }
 
 .search-bar {
@@ -507,25 +507,25 @@ defineExpose({
   display: flex;
   gap: 4px;
   padding: 12px 16px;
-  background: white;
-  border-bottom: 1px solid #ddd;
+  background: var(--bg-color-secondary); 
+  border-bottom: 1px solid var(--border-color); 
   overflow-x: auto;
 }
 
 .notes-categories button {
   padding: 6px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 20px;
-  background: white;
+  background: var(--bg-color-secondary);
   cursor: pointer;
   white-space: nowrap;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .notes-categories button.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+  background: var(--color-primary);
+  color: var(--text-color);
+  border-color: var(--color-primary);
 }
 
 .count {
@@ -542,9 +542,9 @@ defineExpose({
 
 .notes-list {
   width: 300px;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid var(--border-color); 
   overflow-y: auto;
-  background: white;
+  background: var(--bg-color-secondary);
   transition: width 0.3s ease;
 }
 
@@ -571,25 +571,25 @@ defineExpose({
 }
 
 .note-item:hover {
-  background: #f8f9fa;
+ background: var(--bg-color);
 }
 
 .note-item.active {
-  background: #e3f2fd;
-  border-left: 4px solid #007bff;
+  background: var(--color-primary-bg);
+  border-left: 4px solid var(--color-primary);
 }
 
 .note-title {
   font-weight: bold;
   margin-bottom: 4px;
-  color: #333;
+  color: var(--text-color);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .note-preview {
-  color: #666;
+  color: var(--text-color-secondary);
   font-size: 14px;
   line-height: 1.4;
   margin-bottom: 8px;
@@ -609,24 +609,24 @@ defineExpose({
 }
 
 .category-personal {
-  background: #6c757d;
+  background: var(--color-secondary);
 }
 
 .category-work {
-  background: #007bff;
+  background: var(--color-primary);
 }
 
 .category-study {
-  background: #28a745;
+  background: var(--color-success);
 }
 
 .category-project {
-  background: #ffc107;
-  color: #333;
+  background: var(--color-warning);
+  color: var(--text-color);
 }
 
 .note-date {
-  color: #999;
+  color: var(--text-color-tertiary);
 }
 
 .note-editor {
@@ -640,14 +640,17 @@ defineExpose({
   display: flex;
   gap: 12px;
   padding: 16px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-color-secondary);
   align-items: center;
 }
 
 .note-title-input {
   flex: 1;
   padding: 8px;
-  border: 1px solid #ddd;
+ border: 1px solid var(--border-color);
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
   border-radius: 4px;
   font-size: 16px;
   font-weight: bold;
@@ -661,45 +664,48 @@ defineExpose({
 
 .editor-actions select {
   padding: 6px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
   border-radius: 4px;
 }
 
 .delete-btn, .close-btn {
   padding: 6px 12px;
-  border: 1px solid #dc3545;
+  border: 1px solid var(--color-error);
   border-radius: 4px;
-  background: white;
-  color: #dc3545;
+  background: var(--bg-color-secondary);
+  color: var(--color-error);
   cursor: pointer;
 }
 
 .close-btn {
-  border-color: #6c757d;
-  color: #6c757d;
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
 }
 
 .editor-toolbar {
   display: flex;
   gap: 4px;
   padding: 8px 16px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #ddd;
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
   overflow-x: auto;
 }
 
 .editor-toolbar button {
   padding: 6px 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: white;
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
   cursor: pointer;
   font-weight: bold;
   white-space: nowrap;
 }
 
 .editor-toolbar button:hover {
-  background: #e9ecef;
+  background: var(--bg-color-hover);
 }
 
 .editor-content {
@@ -717,17 +723,22 @@ defineExpose({
   font-size: 14px;
   line-height: 1.6;
   resize: none;
+
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
 }
 
 .preview-panel {
   width: 50%;
-  border-left: 1px solid #ddd;
+  border-left: 1px solid var(--border-color);
   overflow-y: auto;
 }
 
 .preview-content {
   padding: 16px;
   line-height: 1.6;
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
 }
 
 .preview-content h1,
@@ -738,14 +749,15 @@ defineExpose({
 }
 
 .preview-content code {
-  background: #f8f9fa;
+  background: var(--bg-color);
+  color: var(--text-color);
   padding: 2px 4px;
   border-radius: 3px;
   font-family: 'Courier New', monospace;
 }
 
 .preview-content a {
-  color: #007bff;
+  color: var(--color-primary);
   text-decoration: none;
 }
 
@@ -758,20 +770,21 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   padding: 8px 16px;
-  background: #f8f9fa;
-  border-top: 1px solid #ddd;
+  background: var(--bg-color);
+  border-top: 1px solid var(--border-color);
   font-size: 12px;
 }
 
 .editor-stats {
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .preview-btn {
   padding: 4px 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: white;
+ background: var(--bg-color-secondary);
+  color: var(--text-color);
   cursor: pointer;
   font-size: 12px;
 }

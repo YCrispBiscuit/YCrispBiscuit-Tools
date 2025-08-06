@@ -8,10 +8,10 @@ import type { MatrixLoginConfig, MatrixRegisterConfig, MatrixUser } from '../../
  * 这是整个Matrix功能的核心，负责与Matrix服务器的连接和认证
  */
 class Matrix客户端服务类 {
-  
+
   // 基础客户端实例（用于登录等未认证操作）
   private 基础客户端实例: any = null
-  
+
   // 已认证的客户端实例（用于发送消息、获取房间等需要认证的操作）
   private 已认证客户端实例: any = null
 
@@ -27,7 +27,7 @@ class Matrix客户端服务类 {
     if (!完整服务器地址.startsWith('http://') && !完整服务器地址.startsWith('https://')) {
       完整服务器地址 = `https://${完整服务器地址}`
     }
-    
+
     console.log(`创建Matrix基础客户端，连接服务器: ${完整服务器地址}`)
     this.基础客户端实例 = sdk.createClient({ baseUrl: 完整服务器地址 })
     return this.基础客户端实例
@@ -35,15 +35,44 @@ class Matrix客户端服务类 {
 
   /**
    * 为用户生成唯一的设备ID
-   * 基于用户ID生成一致的设备ID，确保同一用户每次登录都使用相同设备ID
+   * 基于用户ID和浏览器指纹生成一致的设备ID，确保同一浏览器不同环境下使用相同设备ID
    * @param userId - Matrix用户ID，如 @user:server.com
    * @returns 该用户的唯一设备ID
    */
   private 生成用户设备ID(userId: string): string {
     // 提取用户名部分，去掉@和服务器部分
     const 用户名 = userId.split(':')[0].replace('@', '')
-    // 生成格式：LingJing_用户名_CLIENT
-    return `LingJing_AI_${用户名}_CLIENT`
+
+    // 生成浏览器指纹确保跨环境一致性
+    const 浏览器指纹 = this.生成浏览器指纹()
+
+    // 生成格式：LingJing_用户名_指纹_CLIENT
+    return `LingJing_${用户名}_${浏览器指纹}_CLIENT`
+  }
+
+  /**
+   * 生成浏览器指纹
+   * 基于浏览器特征生成稳定的指纹，确保跨环境一致性
+   */
+  private 生成浏览器指纹(): string {
+    const 指纹数据 = [
+      navigator.userAgent,
+      navigator.language,
+      navigator.platform,
+      screen.width + 'x' + screen.height,
+      navigator.hardwareConcurrency || 4,
+      new Date().getTimezoneOffset()
+    ].join('|')
+
+    // 简单哈希生成8位指纹
+    let hash = 0
+    for (let i = 0; i < 指纹数据.length; i++) {
+      const char = 指纹数据.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // 转换为32位整数
+    }
+
+    return Math.abs(hash).toString(16).substring(0, 8).toUpperCase()
   }
 
   /**
@@ -56,25 +85,25 @@ class Matrix客户端服务类 {
     // 清理之前的客户端实例，确保完全重新开始
     this.基础客户端实例 = null
     this.已认证客户端实例 = null
-    
+
     // 生成完整的Matrix用户ID格式：@username:server.com
     const 完整用户ID = this.生成完整用户ID(登录配置.username, 登录配置.homeserver)
     const 新设备ID = this.生成用户设备ID(完整用户ID)
-    
+
     // 🔍 检查设备ID是否发生变化，如果变化则清理相关存储
     await this.检查并处理设备ID变化(完整用户ID, 新设备ID)
-    
+
     // 每次登录都重新创建基础客户端，确保使用正确的服务器地址
     console.log(`准备登录到服务器: ${登录配置.homeserver}`)
     this.创建基础客户端(登录配置.homeserver)
-    
+
     console.log(`开始登录Matrix账户: ${完整用户ID}`)
     console.log(`基础客户端baseUrl: ${this.基础客户端实例?.baseUrl}`)
 
     try {
       // 🔑 使用已生成的设备ID
       const 设备显示名 = `LingJing 客户端 - ${登录配置.username}`
-      
+
       // 调用Matrix SDK的登录接口
       const 登录结果 = await this.基础客户端实例.loginRequest({
         type: "m.login.password",  // 使用密码登录方式
@@ -98,12 +127,12 @@ class Matrix客户端服务类 {
         deviceId: 登录结果.device_id, // 传递设备ID
         useAuthorizationHeader: true  // 使用Authorization头而不是查询参数
       })
-      
+
       console.log(`已认证客户端创建成功, baseUrl: ${this.已认证客户端实例.baseUrl}`)
       console.log(`客户端设备ID: ${this.已认证客户端实例.getDeviceId()}`)
 
-      // 保存登录参数到本地存储
-      this.保存登录参数(登录配置)
+      // 保存登录参数到本地存储（包含访问令牌）
+      this.保存登录参数(登录配置, 登录结果.access_token)
 
       // 返回用户信息
       return {
@@ -114,7 +143,7 @@ class Matrix客户端服务类 {
     } catch (登录错误: any) {
       const 错误信息 = 登录错误.message || 登录错误.toString()
       console.error('登录失败:', 错误信息)
-      
+
       // 根据不同的错误类型提供友好的提示
       if (错误信息.includes('M_FORBIDDEN') || 错误信息.includes('Invalid password')) {
         throw new Error('用户名或密码错误，请重新输入')
@@ -127,6 +156,62 @@ class Matrix客户端服务类 {
       } else {
         throw new Error(`登录失败: ${错误信息}`)
       }
+    }
+  }
+
+  /**
+   * 自动登录
+   * 使用保存的访问令牌自动登录，无需用户输入密码
+   */
+  async 自动登录(): Promise<MatrixUser | null> {
+    const 自动登录状态 = this.检查自动登录状态()
+    if (!自动登录状态.canAutoLogin) {
+      console.log('无法自动登录：没有有效的访问令牌')
+      return null
+    }
+
+    const 登录参数 = this.加载登录参数()
+    if (!登录参数) {
+      console.log('无法自动登录：没有保存的登录参数')
+      return null
+    }
+
+    try {
+      console.log('开始自动登录...')
+
+      // 清理之前的客户端实例
+      this.基础客户端实例 = null
+      this.已认证客户端实例 = null
+
+      // 创建基础客户端
+      this.创建基础客户端(登录参数.homeserver)
+
+      // 生成完整的用户ID和设备ID
+      const 完整用户ID = this.生成完整用户ID(登录参数.username, 登录参数.homeserver)
+      const 设备ID = this.生成用户设备ID(完整用户ID)
+
+      // 使用保存的访问令牌创建已认证客户端
+      this.已认证客户端实例 = sdk.createClient({
+        baseUrl: this.基础客户端实例.baseUrl,
+        accessToken: 自动登录状态.accessToken,
+        userId: 完整用户ID,
+        deviceId: 设备ID,
+        useAuthorizationHeader: true
+      })
+
+      console.log('✅ 自动登录成功')
+
+      // 返回用户信息
+      return {
+        userId: 完整用户ID,
+        displayName: 完整用户ID
+      }
+
+    } catch (错误: any) {
+      console.error('自动登录失败:', 错误)
+      // 清理无效的令牌
+      localStorage.removeItem('matrix_access_token')
+      return null
     }
   }
 
@@ -153,7 +238,7 @@ class Matrix客户端服务类 {
 
     try {
       console.log(`向服务器发送注册请求...`)
-      
+
       // 构建注册请求数据
       const 注册数据 = {
         username: 注册配置.username,
@@ -219,15 +304,27 @@ class Matrix客户端服务类 {
   }
 
   /**
-   * 保存登录参数到本地存储
+   * 保存登录参数到本地存储（不保存密码）
    * @param 登录配置 - 要保存的登录参数
+   * @param 访问令牌 - 可选的访问令牌，用于自动登录
    */
-  保存登录参数(登录配置: MatrixLoginConfig): void {
+  保存登录参数(登录配置: MatrixLoginConfig, 访问令牌?: string): void {
     try {
-      // 使用简单的编码（不是加密，只是编码以避免明文存储）
-      const 编码数据 = btoa(JSON.stringify(登录配置))
+      // 只保存服务器地址和用户名，不保存密码
+      const 安全登录信息 = {
+        homeserver: 登录配置.homeserver,
+        username: 登录配置.username,
+        lastLoginTime: Date.now()
+      }
+
+      // 如果有访问令牌，单独保存用于自动登录
+      if (访问令牌) {
+        localStorage.setItem('matrix_access_token', 访问令牌)
+      }
+
+      const 编码数据 = btoa(JSON.stringify(安全登录信息))
       localStorage.setItem('matrix_login_params', 编码数据)
-      console.log('登录参数已保存到本地存储')
+      console.log('安全登录参数已保存（不含密码）')
     } catch (错误) {
       console.warn('保存登录参数失败:', 错误)
     }
@@ -237,7 +334,7 @@ class Matrix客户端服务类 {
    * 从本地存储加载登录参数
    * @returns 保存的登录参数，如果没有则返回null
    */
-  加载登录参数(): MatrixLoginConfig | null {
+  加载登录参数(): { homeserver: string; username: string; lastLoginTime: number } | null {
     try {
       const 编码数据 = localStorage.getItem('matrix_login_params')
       if (!编码数据) {
@@ -256,11 +353,41 @@ class Matrix客户端服务类 {
   }
 
   /**
-   * 清除本地存储的登录参数
+   * 检查是否有有效的访问令牌用于自动登录
+   */
+  检查自动登录状态(): { canAutoLogin: boolean; accessToken?: string } {
+    const 访问令牌 = localStorage.getItem('matrix_access_token')
+    const 登录参数 = this.加载登录参数()
+
+    if (访问令牌 && 登录参数) {
+      // 检查登录时间是否在合理范围内（7天内）
+      const 时间差 = Date.now() - 登录参数.lastLoginTime
+      const 七天毫秒 = 7 * 24 * 60 * 60 * 1000
+
+      if (时间差 < 七天毫秒) {
+        return { canAutoLogin: true, accessToken: 访问令牌 }
+      }
+    }
+
+    return { canAutoLogin: false }
+  }
+
+  /**
+   * 清除登录令牌但保留用户名
+   * 用于退出登录时保留用户名方便下次登录
+   */
+  清除登录令牌(): void {
+    localStorage.removeItem('matrix_access_token')
+    console.log('登录令牌已清除（保留用户名）')
+  }
+
+  /**
+   * 完全清除登录参数
    */
   清除登录参数(): void {
     localStorage.removeItem('matrix_login_params')
-    console.log('登录参数已从本地存储清除')
+    localStorage.removeItem('matrix_access_token')
+    console.log('登录参数已从本地存储完全清除')
   }
 
   /**
@@ -281,12 +408,12 @@ class Matrix客户端服务类 {
       if (typeof this.已认证客户端实例.initRustCrypto === 'function') {
         await this.已认证客户端实例.initRustCrypto()
         console.log("✅ 端到端加密初始化成功 (使用 initRustCrypto)")
-      } 
+      }
       // 回退到老版本的加密初始化
       else if (typeof this.已认证客户端实例.initCrypto === 'function') {
         await this.已认证客户端实例.initCrypto()
         console.log("✅ 端到端加密初始化成功 (使用 initCrypto)")
-      } 
+      }
       // 如果都没有，说明当前SDK版本不支持加密
       else {
         console.log("⚠️ 当前Matrix SDK版本不支持加密功能，将使用基础模式")
@@ -297,10 +424,10 @@ class Matrix客户端服务类 {
       // 加密初始化成功后，初始化交叉签名和密钥备份
       await this.初始化交叉签名()
       await this.初始化密钥备份()
-      
+
       // 添加加密事件监听器，优化错误处理
       this.设置加密事件监听器()
-      
+
     } catch (加密初始化错误: any) {
       const 错误详情 = 加密初始化错误.message || 加密初始化错误.toString()
       console.warn("⚠️ 加密初始化失败，继续使用非加密模式:", 错误详情)
@@ -318,10 +445,10 @@ class Matrix客户端服务类 {
     this.已认证客户端实例.on('crypto.warning' as any, (warning: any) => {
       if (warning && warning.type) {
         // 过滤掉常见的无害警告
-        if (warning.type.includes('OLM_REPLAY_ATTACK') || 
-            warning.type.includes('REPLAY') ||
-            warning.message?.includes('replay') ||
-            warning.message?.includes('已使用')) {
+        if (warning.type.includes('OLM_REPLAY_ATTACK') ||
+          warning.type.includes('REPLAY') ||
+          warning.message?.includes('replay') ||
+          warning.message?.includes('已使用')) {
           // 这些是正常的会话状态调整，不需要用户关注
           return
         }
@@ -330,11 +457,22 @@ class Matrix客户端服务类 {
       }
     })
 
-    // 监听解密错误，提供友好提示
+    // 监听解密错误，自动尝试修复
     this.已认证客户端实例.on('Event.decrypted' as any, (event: any) => {
       if (event.isDecryptionFailure?.()) {
-        console.log('🔓 消息解密处理中...（如果是历史消息可能需要密钥恢复）')
+        console.log('🔓 检测到解密失败，尝试自动修复...')
+        this.自动修复解密错误()
       }
+    })
+
+    // 监听具体的解密错误事件
+    this.已认证客户端实例.on('crypto.roomKeyRequest' as any, () => {
+      console.log('🔑 检测到密钥请求，可能存在解密问题')
+    })
+
+    // 监听设备列表变化
+    this.已认证客户端实例.on('crypto.devicesUpdated' as any, () => {
+      console.log('📱 设备列表已更新')
     })
   }
 
@@ -348,28 +486,28 @@ class Matrix客户端服务类 {
 
     try {
       console.log('🔑 检查并尝试恢复密钥备份...')
-      
+
       // 安全检查密钥备份API是否存在
       if (typeof this.已认证客户端实例.getKeyBackupVersion !== 'function') {
         console.log('🔑 当前SDK版本不支持密钥备份API，跳过')
         return
       }
-      
+
       // 检查是否有可用的密钥备份
       const 备份信息 = await this.已认证客户端实例.getKeyBackupVersion()
-      
+
       if (备份信息) {
         console.log('🔑 发现密钥备份版本:', 备份信息.version)
-        
+
         // 尝试信任并恢复备份
         try {
           if (typeof this.已认证客户端实例.trustKeyBackupVersion === 'function') {
             await this.已认证客户端实例.trustKeyBackupVersion(备份信息)
           }
-          
+
           if (typeof this.已认证客户端实例.restoreKeyBackupWithCache === 'function') {
             const 恢复结果 = await this.已认证客户端实例.restoreKeyBackupWithCache()
-            
+
             if (恢复结果 && 恢复结果.imported > 0) {
               console.log(`🔑 成功恢复 ${恢复结果.imported} 个密钥`)
             } else {
@@ -400,18 +538,18 @@ class Matrix客户端服务类 {
     try {
       console.log('🔐 开始初始化交叉签名...')
       const crypto = this.已认证客户端实例.getCrypto()
-      
+
       if (!crypto) {
         console.log('⚠️ 加密模块未初始化，跳过交叉签名设置')
         return
       }
 
       const userId = this.已认证客户端实例.getUserId()
-      
+
       // 检查交叉签名是否已经设置
       try {
         const crossSigningInfo = await crypto.getCrossSigningInfo?.(userId)
-        
+
         if (crossSigningInfo && crossSigningInfo.getId && crossSigningInfo.getId()) {
           console.log('🔐 交叉签名已存在，无需重新设置')
           return
@@ -423,7 +561,7 @@ class Matrix客户端服务类 {
       // 谨慎初始化交叉签名
       if (crypto.bootstrapCrossSigning) {
         console.log('🔐 正在谨慎地引导交叉签名设置...')
-        
+
         try {
           await crypto.bootstrapCrossSigning({
             authUploadDeviceSigningKeys: async (makeRequest: any) => {
@@ -439,14 +577,14 @@ class Matrix客户端服务类 {
             },
             setupNewCrossSigning: true
           })
-          
+
           console.log('🔐 交叉签名初始化成功')
-          
+
         } catch (bootstrapError: any) {
           console.warn('🔐 交叉签名引导失败，但不影响基础聊天功能:', bootstrapError.message)
           // 不重新抛出错误
         }
-        
+
       } else {
         console.log('🔐 当前SDK版本不支持交叉签名，跳过')
       }
@@ -504,7 +642,7 @@ class Matrix客户端服务类 {
       // 获取设备列表
       const devices = await crypto.getUserDeviceInfo([targetUserId])
       const userDevices = devices.get(targetUserId)
-      
+
       if (!userDevices) {
         console.log(`用户 ${targetUserId} 没有设备信息`)
         return []
@@ -546,7 +684,7 @@ class Matrix客户端服务类 {
       }
 
       console.log(`设置设备 ${deviceId} 验证状态为: ${verified}`)
-      
+
       if (crypto.setDeviceVerified) {
         await crypto.setDeviceVerified(userId, deviceId, verified)
         console.log(`设备 ${deviceId} 验证状态已更新`)
@@ -603,7 +741,7 @@ class Matrix客户端服务类 {
 
       // 检查请求设备是否被信任
       const isDeviceTrusted = await this.检查设备信任状态(requesting_user_id, requesting_device_id)
-      
+
       if (!isDeviceTrusted) {
         console.log(`🔑 设备 ${requesting_device_id} 未被信任，拒绝密钥请求`)
         return
@@ -628,15 +766,15 @@ class Matrix客户端服务类 {
   private async 处理设备列表更新(users: string[]): Promise<void> {
     try {
       console.log('🔐 处理设备列表更新，受影响用户:', users)
-      
+
       for (const userId of users) {
         // 获取用户的新设备
         const devices = await this.获取用户设备列表(userId)
         const unverifiedDevices = devices.filter(device => !device.isVerified)
-        
+
         if (unverifiedDevices.length > 0) {
           console.log(`🔐 用户 ${userId} 有 ${unverifiedDevices.length} 个未验证设备`)
-          
+
           // 这里可以触发用户界面提示新设备需要验证
           // 或者根据策略自动处理某些设备
           this.通知新设备需要验证(userId, unverifiedDevices)
@@ -657,7 +795,7 @@ class Matrix客户端服务类 {
     devices.forEach(device => {
       console.log(`  - 设备: ${device.displayName} (${device.deviceId})`)
     })
-    
+
     // 这里可以发送通知给UI层，提示用户验证新设备
     // 例如：emit('newDeviceDetected', { userId, devices })
   }
@@ -673,14 +811,14 @@ class Matrix客户端服务类 {
     }
 
     console.log('启动Matrix客户端，开始同步数据...')
-    
+
     // 添加Olm会话错误处理，避免重放警告
     this.已认证客户端实例.on('crypto.warning' as any, (warning: any) => {
       if (warning && warning.type) {
         // 过滤掉Olm重放警告，避免控制台噪音
-        if (warning.type.includes('OLM_REPLAY_ATTACK') || 
-            warning.type.includes('REPLAY') ||
-            warning.message?.includes('replay')) {
+        if (warning.type.includes('OLM_REPLAY_ATTACK') ||
+          warning.type.includes('REPLAY') ||
+          warning.message?.includes('replay')) {
           console.log('🔄 Olm会话状态自动调整（正常现象）')
           return
         }
@@ -688,7 +826,7 @@ class Matrix客户端服务类 {
         console.warn('🔐 加密警告:', warning)
       }
     })
-    
+
     // 启动客户端，配置初始同步选项
     this.已认证客户端实例.startClient({
       // 减少初始同步时的重复消息处理
@@ -696,10 +834,10 @@ class Matrix客户端服务类 {
       // 启用会话持久化，减少Olm重放警告
       lazyLoadMembers: true
     })
-    
+
     // 启动密钥共享监听
     this.启动密钥共享监听()
-    
+
     console.log('客户端已启动，正在与服务器同步')
   }
 
@@ -716,7 +854,7 @@ class Matrix客户端服务类 {
       .replace('https://', '')
       .replace('http://', '')
       .replace(/\/$/, '') // 去掉末尾的斜杠
-    
+
     const 完整ID = `@${用户名}:${服务器名称}`
     console.log(`生成完整用户ID: ${完整ID}`)
     return 完整ID
@@ -725,18 +863,18 @@ class Matrix客户端服务类 {
   /**
    * 用户登出
    * 清理所有客户端实例和相关状态
-   * @param 保留登录参数 - 是否保留本地存储的登录参数，默认保留
+   * @param 保留用户名 - 是否保留用户名，默认保留
    */
-  用户登出(保留登录参数: boolean = true): void {
+  用户登出(保留用户名: boolean = true): void {
     console.log('开始登出Matrix账户...')
-    
+
     // 如果有已认证的客户端，先停止同步并执行登出操作
     if (this.已认证客户端实例) {
       try {
         // 先停止客户端同步，避免继续发送请求
         console.log('停止客户端同步...')
         this.已认证客户端实例.stopClient()
-        
+
         // 然后执行登出操作
         this.已认证客户端实例.logout()
         console.log('已向服务器发送登出请求')
@@ -745,7 +883,7 @@ class Matrix客户端服务类 {
       }
       this.已认证客户端实例 = null
     }
-    
+
     // 清理基础客户端
     if (this.基础客户端实例) {
       try {
@@ -755,13 +893,14 @@ class Matrix客户端服务类 {
       }
       this.基础客户端实例 = null
     }
-    
+
     // 根据参数决定是否清除登录参数
-    if (!保留登录参数) {
+    if (!保留用户名) {
       this.清除登录参数()
       console.log('✅ 完全登出完成，所有数据已清理')
     } else {
-      console.log('✅ 登出完成，登录参数已保留')
+      this.清除登录令牌()
+      console.log('✅ 登出完成，用户名已保留')
     }
   }
 
@@ -770,7 +909,7 @@ class Matrix客户端服务类 {
    * @returns 如果有已认证的客户端实例则返回true
    */
   检查登录状态(): boolean {
-    const 已登录 = this.已认证客户端实例!== null
+    const 已登录 = this.已认证客户端实例 !== null
     console.log(`当前登录状态: ${已登录 ? '已登录' : '未登录'}`)
     return 已登录
   }
@@ -802,30 +941,30 @@ class Matrix客户端服务类 {
    */
   private async 检查并处理设备ID变化(userId: string, newDeviceId: string): Promise<void> {
     const storageKey = `matrix_device_id_${userId}`
-    
+
     try {
       // 从localStorage获取上次使用的设备ID
       const lastDeviceId = localStorage.getItem(storageKey)
-      
+
       console.log(`🔍 检查设备ID变化:`)
       console.log(`  - 存储键: ${storageKey}`)
       console.log(`  - 上次设备ID: ${lastDeviceId || '无'}`)
       console.log(`  - 新设备ID: ${newDeviceId}`)
-      
+
       // 特殊处理：如果发现localStorage中还有YCB格式的相关数据，强制清理
       const hasYCBData = this.检查是否存在YCB格式数据()
       if (hasYCBData) {
         console.log('🚨 发现YCB格式的历史数据，执行强制清理...')
         await this.清理设备ID相关存储(userId, 'YCB_*')
       }
-      
+
       if (lastDeviceId && lastDeviceId !== newDeviceId) {
         console.log(`🔍 检测到设备ID变化: ${lastDeviceId} -> ${newDeviceId}`)
         console.log('🧹 设备ID变化会导致加密冲突，开始清理相关存储...')
-        
+
         // 清理与旧设备ID相关的存储
         await this.清理设备ID相关存储(userId, lastDeviceId)
-        
+
         console.log('✅ 设备ID变化清理完成，现在可以正常使用新设备ID')
       } else if (!lastDeviceId) {
         console.log(`🔍 首次登录用户 ${userId}，设备ID: ${newDeviceId}`)
@@ -837,10 +976,10 @@ class Matrix客户端服务类 {
           await this.清理设备ID相关存储(userId, 'YCB_*')
         }
       }
-      
+
       // 保存当前设备ID以供下次比较
       localStorage.setItem(storageKey, newDeviceId)
-      
+
     } catch (error) {
       console.warn('检查设备ID变化时出错:', error)
       // 出错时也保存新设备ID，避免下次再出错
@@ -868,15 +1007,15 @@ class Matrix客户端服务类 {
   private async 清理设备ID相关存储(_userId: string, oldDeviceId: string): Promise<void> {
     try {
       console.log(`🧹 开始彻底清理设备ID ${oldDeviceId} 相关的存储数据`)
-      
+
       // 1. 完全清理localStorage - 清理所有Matrix相关数据，不留死角
       const allLocalStorageKeys = []
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
         if (key) allLocalStorageKeys.push(key)
       }
-      
-      const matrixKeysToRemove = allLocalStorageKeys.filter(key => 
+
+      const matrixKeysToRemove = allLocalStorageKeys.filter(key =>
         key.includes(oldDeviceId) ||
         key.includes('matrix') ||
         key.includes('crypto') ||
@@ -891,20 +1030,20 @@ class Matrix客户端服务类 {
         key.includes('mx_') ||
         key.includes('@')  // Matrix用户ID格式
       )
-      
+
       console.log(`🧹 localStorage 彻底清理 ${matrixKeysToRemove.length} 个Matrix相关键`)
       matrixKeysToRemove.forEach(key => {
         localStorage.removeItem(key)
         console.log(`✅ 彻底清理localStorage: ${key}`)
       })
-      
+
       // 2. 完全清理sessionStorage - 一网打尽
       const allSessionStorageKeys = []
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i)
         if (key) allSessionStorageKeys.push(key)
       }
-      
+
       const matrixSessionKeysToRemove = allSessionStorageKeys.filter(key =>
         key.includes(oldDeviceId) ||
         key.includes('matrix') ||
@@ -914,17 +1053,17 @@ class Matrix客户端服务类 {
         key.includes('mx_') ||
         key.includes('@')
       )
-      
+
       console.log(`🧹 sessionStorage 彻底清理 ${matrixSessionKeysToRemove.length} 个Matrix相关键`)
       matrixSessionKeysToRemove.forEach(key => {
         sessionStorage.removeItem(key)
         console.log(`✅ 彻底清理sessionStorage: ${key}`)
       })
-      
+
       // 3. 彻底清理IndexedDB - 删除所有可能的Matrix数据库
       const allPossibleDatabases = [
         'matrix-js-sdk:crypto',
-        'matrix-js-sdk:riot-web-sync', 
+        'matrix-js-sdk:riot-web-sync',
         'matrix-js-sdk:store',
         'matrix-js-sdk',
         'rust-sdk-crypto',
@@ -937,7 +1076,7 @@ class Matrix客户端服务类 {
         'element-crypto',
         'matrix-rust-crypto'
       ]
-      
+
       console.log(`🧹 彻底清理 ${allPossibleDatabases.length} 个可能的IndexedDB数据库`)
       for (const dbName of allPossibleDatabases) {
         try {
@@ -947,7 +1086,7 @@ class Matrix客户端服务类 {
           console.log(`⚠️ IndexedDB ${dbName} 不存在或已删除`)
         }
       }
-      
+
       // 4. 额外清理：检查并删除所有以matrix开头的数据库
       try {
         // 获取所有IndexedDB数据库名称（如果浏览器支持）
@@ -972,9 +1111,9 @@ class Matrix客户端服务类 {
       } catch (error) {
         console.log('⚠️ 无法枚举IndexedDB数据库（浏览器不支持）')
       }
-      
+
       console.log('🎉 设备ID相关存储彻底清理完成 - 一干二净！')
-      
+
     } catch (error) {
       console.warn('❌ 彻底清理设备ID相关存储时出错:', error)
     }
@@ -986,15 +1125,15 @@ class Matrix客户端服务类 {
   public async 强制清理加密存储(): Promise<void> {
     try {
       console.log('🚨 开始强制清理所有加密相关存储...')
-      
+
       // 1. 清理localStorage中的所有Matrix相关数据
       const allKeys = []
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
         if (key) allKeys.push(key)
       }
-      
-      const matrixKeys = allKeys.filter(key => 
+
+      const matrixKeys = allKeys.filter(key =>
         key.includes('matrix') ||
         key.includes('crypto') ||
         key.includes('device') ||
@@ -1005,31 +1144,31 @@ class Matrix客户端服务类 {
         key.includes('YCB_') ||
         key.includes('LingJing_')
       )
-      
+
       console.log(`🧹 强制清理 localStorage 中的 ${matrixKeys.length} 个加密相关键`)
       matrixKeys.forEach(key => {
         localStorage.removeItem(key)
         console.log(`✅ 强制清理localStorage: ${key}`)
       })
-      
+
       // 2. 清理sessionStorage
       const sessionKeys = []
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i)
         if (key) sessionKeys.push(key)
       }
-      
+
       const matrixSessionKeys = sessionKeys.filter(key =>
         key.includes('matrix') ||
         key.includes('crypto')
       )
-      
+
       console.log(`🧹 强制清理 sessionStorage 中的 ${matrixSessionKeys.length} 个加密相关键`)
       matrixSessionKeys.forEach(key => {
         sessionStorage.removeItem(key)
         console.log(`✅ 强制清理sessionStorage: ${key}`)
       })
-      
+
       // 3. 清理所有可能的IndexedDB数据库
       const allDatabasesToDelete = [
         'matrix-js-sdk:crypto',
@@ -1040,7 +1179,7 @@ class Matrix客户端服务类 {
         'matrix-js-sdk',
         'crypto-store'
       ]
-      
+
       console.log(`🧹 强制清理 ${allDatabasesToDelete.length} 个 IndexedDB 数据库`)
       for (const dbName of allDatabasesToDelete) {
         try {
@@ -1050,10 +1189,10 @@ class Matrix客户端服务类 {
           console.log(`⚠️ IndexedDB ${dbName} 不存在或清理失败`)
         }
       }
-      
+
       console.log('🎉 强制清理完成！请刷新页面后重新登录')
       alert('🎉 强制清理完成！请刷新页面后重新登录以解决设备认证问题')
-      
+
     } catch (error) {
       console.error('❌ 强制清理失败:', error)
       alert('❌ 强制清理失败: ' + String(error))
@@ -1066,7 +1205,7 @@ class Matrix客户端服务类 {
   private deleteIndexedDB(dbName: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const deleteReq = indexedDB.deleteDatabase(dbName)
-      
+
       deleteReq.onsuccess = () => resolve()
       deleteReq.onerror = () => reject(deleteReq.error)
       deleteReq.onblocked = () => {
@@ -1090,7 +1229,7 @@ class Matrix客户端服务类 {
 
     try {
       console.log(`🔄 开始为房间 ${roomId} 执行密钥轮转...`)
-      
+
       const crypto = this.已认证客户端实例.getCrypto()
       if (!crypto) {
         throw new Error('加密模块未初始化')
@@ -1107,7 +1246,7 @@ class Matrix客户端服务类 {
       if (room && crypto.ensureOlmSessionsForUsers) {
         const members = room.getJoinedMembers()
         const userIds = members.map((member: any) => member.userId)
-        
+
         await crypto.ensureOlmSessionsForUsers(userIds)
         console.log(`🔄 已为 ${userIds.length} 个用户准备新的加密会话`)
       }
@@ -1131,7 +1270,7 @@ class Matrix客户端服务类 {
 
     try {
       console.log('🔄 开始批量密钥轮转...')
-      
+
       const rooms = this.已认证客户端实例.getRooms()
       const encryptedRooms = rooms.filter((room: any) =>
         room.hasEncryptionStateEvent() && room.isSpaceRoom() === false
@@ -1158,6 +1297,101 @@ class Matrix客户端服务类 {
   }
 
   /**
+   * 自动修复解密错误
+   * 当检测到解密失败时自动执行的修复流程
+   */
+  private async 自动修复解密错误(): Promise<void> {
+    // 防止重复执行修复
+    if (this.isFixingDecryption) {
+      console.log('🔧 解密修复正在进行中，跳过重复执行')
+      return
+    }
+
+    this.isFixingDecryption = true
+
+    try {
+      console.log('🔧 开始自动修复解密错误...')
+
+      // 1. 检查是否为设备ID冲突导致的解密问题
+      const userId = this.已认证客户端实例?.getUserId()
+      if (userId) {
+        const currentDeviceId = this.已认证客户端实例?.getDeviceId()
+        console.log(`🔍 当前设备ID: ${currentDeviceId}`)
+
+        // 强制重新生成设备ID，清理冲突状态
+        const newDeviceId = this.生成用户设备ID(userId)
+        if (currentDeviceId !== newDeviceId) {
+          console.log(`🔧 检测到设备ID不一致，需要重新登录修复`)
+          console.log(`   当前: ${currentDeviceId}`)
+          console.log(`   应为: ${newDeviceId}`)
+
+          // 清理当前的冲突数据
+          await this.清理设备ID相关存储(userId, currentDeviceId || 'unknown')
+
+          // 提示用户需要重新登录
+          this.触发重新登录提示()
+          return
+        }
+      }
+
+      // 2. 尝试重新初始化加密功能
+      console.log('🔧 重新初始化加密功能...')
+      await this.初始化加密功能()
+
+      // 3. 尝试建立新的加密会话
+      if (this.已认证客户端实例) {
+        const crypto = this.已认证客户端实例.getCrypto()
+        if (crypto && crypto.ensureOlmSessionsForUsers) {
+          const rooms = this.已认证客户端实例.getRooms()
+          const userIds = new Set<string>()
+
+          // 收集所有房间中的用户ID
+          rooms.forEach((room: any) => {
+            const members = room.getJoinedMembers()
+            members.forEach((member: any) => {
+              if (member.userId !== userId) {
+                userIds.add(member.userId)
+              }
+            })
+          })
+
+          if (userIds.size > 0) {
+            console.log(`🔧 为 ${userIds.size} 个用户建立新的加密会话...`)
+            await crypto.ensureOlmSessionsForUsers(Array.from(userIds))
+          }
+        }
+      }
+
+      console.log('✅ 自动解密修复完成')
+
+    } catch (error) {
+      console.error('❌ 自动解密修复失败:', error)
+    } finally {
+      this.isFixingDecryption = false
+    }
+  }
+
+  /**
+   * 触发重新登录提示
+   */
+  private 触发重新登录提示(): void {
+    console.log('🔄 由于设备ID冲突，需要重新登录以修复解密问题')
+
+    // 清除访问令牌，强制重新登录
+    this.清除登录令牌()
+
+    // 可以在这里添加通知机制，告知UI层需要重新登录
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('matrix:needRelogin', {
+        detail: { reason: '检测到设备ID冲突，需要重新登录以修复加密问题' }
+      }))
+    }
+  }
+
+  // 添加标志位防止重复修复
+  private isFixingDecryption: boolean = false
+
+  /**
    * 完整的交叉签名设置
    * 包括主密钥、自签密钥、用户签名密钥的完整生成
    */
@@ -1168,7 +1402,7 @@ class Matrix客户端服务类 {
 
     try {
       console.log('🔐 开始完整的交叉签名设置...')
-      
+
       const crypto = this.已认证客户端实例.getCrypto()
       if (!crypto || !crypto.bootstrapCrossSigning) {
         console.warn('当前SDK版本不支持交叉签名')
@@ -1178,10 +1412,10 @@ class Matrix客户端服务类 {
       // 检查是否已经设置过交叉签名
       const userId = this.已认证客户端实例.getUserId()
       const existingCrossSigning = await crypto.getCrossSigningInfo?.(userId)
-      
+
       if (existingCrossSigning && existingCrossSigning.getId && existingCrossSigning.getId()) {
         console.log('交叉签名已存在，检查是否需要重置...')
-        
+
         // 可以添加检查逻辑，比如密钥是否损坏
         const isValid = await this.验证交叉签名完整性()
         if (isValid) {
@@ -1195,7 +1429,7 @@ class Matrix客户端服务类 {
         // 授权上传设备签名密钥的回调
         authUploadDeviceSigningKeys: async (makeRequest: any) => {
           console.log('🔐 上传设备签名密钥...')
-          
+
           // 如果提供了密码，使用密码认证
           if (密码) {
             return await makeRequest({
@@ -1207,7 +1441,7 @@ class Matrix客户端服务类 {
               }
             })
           }
-          
+
           // 否则尝试直接上传
           try {
             return await makeRequest({})
@@ -1220,21 +1454,21 @@ class Matrix客户端服务类 {
             throw 错误
           }
         },
-        
+
         // 设置新的交叉签名
         setupNewCrossSigning: true
       })
 
       console.log('✅ 交叉签名设置成功')
-      
+
       // 验证设置结果
       const newCrossSigning = await crypto.getCrossSigningInfo?.(userId)
       if (newCrossSigning && newCrossSigning.getId && newCrossSigning.getId()) {
         console.log('✅ 交叉签名验证通过')
-        
+
         // 自动信任自己的设备
         await this.信任自己的所有设备()
-        
+
         return true
       } else {
         console.warn('⚠️ 交叉签名设置后验证失败')
@@ -1254,7 +1488,7 @@ class Matrix客户端服务类 {
     try {
       const crypto = this.已认证客户端实例?.getCrypto()
       const userId = this.已认证客户端实例?.getUserId()
-      
+
       if (!crypto || !userId) return false
 
       const crossSigningInfo = await crypto.getCrossSigningInfo?.(userId)
@@ -1297,7 +1531,7 @@ class Matrix客户端服务类 {
     try {
       const crypto = this.已认证客户端实例?.getCrypto()
       const userId = this.已认证客户端实例?.getUserId()
-      
+
       if (!crypto || !userId) return
 
       console.log('🔐 开始信任自己的所有设备...')
@@ -1305,7 +1539,7 @@ class Matrix客户端服务类 {
       // 获取自己的所有设备
       const devices = await crypto.getUserDeviceInfo([userId])
       const myDevices = devices.get(userId)
-      
+
       if (!myDevices) {
         console.log('没有找到设备信息')
         return
@@ -1346,7 +1580,7 @@ class Matrix客户端服务类 {
 
     try {
       console.log('🔑 开始完整的密钥备份设置...')
-      
+
       const crypto = this.已认证客户端实例.getCrypto()
       if (!crypto) {
         throw new Error('加密模块未初始化')
@@ -1366,7 +1600,7 @@ class Matrix客户端服务类 {
 
       if (backupInfo) {
         console.log('发现现有密钥备份版本:', backupInfo.version)
-        
+
         // 如果有现有备份，尝试获取恢复密钥
         if (密码) {
           try {
@@ -1386,7 +1620,7 @@ class Matrix客户端服务类 {
       // 如果没有现有备份或恢复失败，创建新的备份
       if (!backupInfo) {
         console.log('🔑 创建新的密钥备份...')
-        
+
         // 生成新的备份密钥
         const backupKeyInfo = await this.已认证客户端实例.prepareKeyBackupVersion(密码)
         recoveryKey = backupKeyInfo.recovery_key
@@ -1442,7 +1676,7 @@ class Matrix客户端服务类 {
 
       // 验证恢复密钥
       const backupKey = await this.已认证客户端实例.keyBackupKeyFromRecoveryKey(recoveryKey)
-      
+
       // 验证密钥是否匹配
       const isValid = await this.已认证客户端实例.checkKeyBackup(backupKey, backupInfo)
       if (!isValid) {
@@ -1453,10 +1687,10 @@ class Matrix客户端服务类 {
 
       // 信任并使用这个备份
       await this.已认证客户端实例.trustKeyBackupVersion(backupInfo)
-      
+
       // 从备份恢复密钥
       const result = await this.已认证客户端实例.restoreKeyBackupWithRecoveryKey(
-        recoveryKey, 
+        recoveryKey,
         undefined, // roomId (undefined表示恢复所有房间)
         undefined, // sessionId
         backupInfo
@@ -1492,19 +1726,19 @@ class Matrix客户端服务类 {
 
       // 导出房间密钥
       const keys = await crypto.exportRoomKeys()
-      
+
       // 过滤指定房间的密钥
       const roomKeys = keys.filter((key: any) => key.room_id === roomId)
-      
+
       if (roomKeys.length === 0) {
         throw new Error('没有找到该房间的密钥')
       }
 
       // 使用密码短语加密导出的密钥
       const encryptedKeys = await this.已认证客户端实例.encryptAndExportRoomKeys(roomKeys, passphrase)
-      
+
       console.log(`✅ 成功导出 ${roomKeys.length} 个房间密钥`)
-      
+
       return encryptedKeys
 
     } catch (错误: any) {
@@ -1532,12 +1766,12 @@ class Matrix客户端服务类 {
 
       // 解密并导入密钥
       const keys = await this.已认证客户端实例.decryptAndImportRoomKeys(encryptedKeys, passphrase)
-      
+
       // 导入到加密模块
       await crypto.importRoomKeys(keys)
-      
+
       console.log(`✅ 成功导入 ${keys.length} 个房间密钥`)
-      
+
       return keys.length
 
     } catch (错误: any) {
@@ -1549,7 +1783,7 @@ class Matrix客户端服务类 {
   /**
    * 获取设备验证状态
    */
-  async 获取设备验证状态(): Promise<{[userId: string]: {[deviceId: string]: any}}> {
+  async 获取设备验证状态(): Promise<{ [userId: string]: { [deviceId: string]: any } }> {
     if (!this.已认证客户端实例) {
       throw new Error('客户端未认证')
     }
@@ -1562,7 +1796,7 @@ class Matrix客户端服务类 {
 
       const rooms = this.已认证客户端实例.getRooms()
       const allUserIds = new Set<string>()
-      
+
       // 收集所有房间中的用户ID
       rooms.forEach((room: any) => {
         room.getJoinedMembers().forEach((member: any) => {
@@ -1572,7 +1806,7 @@ class Matrix客户端服务类 {
 
       // 获取设备信息
       const deviceMap = await crypto.getUserDeviceInfo(Array.from(allUserIds))
-      const result: {[userId: string]: {[deviceId: string]: any}} = {}
+      const result: { [userId: string]: { [deviceId: string]: any } } = {}
 
       for (const [userId, devices] of deviceMap) {
         result[userId] = {}
@@ -1657,7 +1891,7 @@ class Matrix客户端服务类 {
   /**
    * 获取密钥备份状态
    */
-  async 获取密钥备份状态(): Promise<{hasBackup: boolean, version?: string, algorithm?: string}> {
+  async 获取密钥备份状态(): Promise<{ hasBackup: boolean, version?: string, algorithm?: string }> {
     if (!this.已认证客户端实例) {
       throw new Error('客户端未认证')
     }
@@ -1668,7 +1902,7 @@ class Matrix客户端服务类 {
       }
 
       const backupInfo = await this.已认证客户端实例.getKeyBackupVersion()
-      
+
       if (backupInfo) {
         return {
           hasBackup: true,
@@ -1704,7 +1938,7 @@ class Matrix客户端服务类 {
 
       // 安排所有群组会话进行备份
       await this.已认证客户端实例.scheduleAllGroupSessionsForBackup()
-      
+
       // 立即执行备份
       if (typeof this.已认证客户端实例.backupAllGroupSessions === 'function') {
         await this.已认证客户端实例.backupAllGroupSessions()

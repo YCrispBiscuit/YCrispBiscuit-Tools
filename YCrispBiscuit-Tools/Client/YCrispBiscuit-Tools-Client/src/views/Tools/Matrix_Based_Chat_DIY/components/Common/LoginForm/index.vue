@@ -49,7 +49,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { matrixClient } from '../../../services/matrix/client'
-import type { MatrixLoginConfig } from '../../../types'
+import type { MatrixLoginConfig, MatrixUser } from '../../../types'
 
 /**
  * Matrix登录表单组件
@@ -63,6 +63,8 @@ import type { MatrixLoginConfig } from '../../../types'
 const emit = defineEmits<{
     /** 用户提交登录信息时触发 */
     login: [loginData: MatrixLoginConfig]
+    /** 自动登录成功时触发 */
+    'auto-login-success': [userInfo: MatrixUser]
     /** 用户要求切换到注册界面时触发 */
     'switch-to-register': []
 }>()
@@ -85,6 +87,26 @@ const errorMessage = ref('')
 // ===== 组件初始化 =====
 
 /**
+ * 监听Matrix重新登录事件
+ */
+const setupMatrixEventListeners = () => {
+    // 监听需要重新登录的事件
+    window.addEventListener('matrix:needRelogin', (event: any) => {
+        const reason = event.detail?.reason || '需要重新登录'
+        console.log('🔄 收到重新登录请求:', reason)
+        
+        // 重置登录状态
+        isLoggingIn.value = false
+        
+        // 显示友好的提示信息
+        showError(`${reason}，请重新登录`)
+        
+        // 清空密码字段，要求用户重新输入
+        formData.password = ''
+    })
+}
+
+/**
  * 从本地存储加载保存的登录参数
  */
 const loadSavedLoginParams = () => {
@@ -92,14 +114,37 @@ const loadSavedLoginParams = () => {
     if (savedParams) {
         formData.homeserver = savedParams.homeserver
         formData.username = savedParams.username
-        formData.password = savedParams.password
-        console.log('已从本地存储加载登录参数')
+        // 不自动填充密码
+        formData.password = ''
+        console.log('已从本地存储加载登录参数（不含密码）')
     }
 }
 
+/**
+ * 尝试自动登录
+ */
+const tryAutoLogin = async () => {
+    const userInfo = await matrixClient.自动登录()
+    if (userInfo) {
+        console.log('✅ 自动登录成功')
+        emit('auto-login-success', userInfo)
+        return true
+    }
+    return false
+}
+
 // 组件挂载时加载保存的登录参数
-onMounted(() => {
+onMounted(async () => {
+    // 设置Matrix事件监听器
+    setupMatrixEventListeners()
+    
     loadSavedLoginParams()
+    
+    // 尝试自动登录
+    const autoLoginSuccess = await tryAutoLogin()
+    if (autoLoginSuccess) {
+        console.log('自动登录成功，跳过手动登录界面')
+    }
 })
 
 // ===== 计算属性 =====

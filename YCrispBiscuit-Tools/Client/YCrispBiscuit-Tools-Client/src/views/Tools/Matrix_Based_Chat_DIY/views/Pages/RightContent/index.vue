@@ -27,7 +27,7 @@ const chatContext = inject('chatContext') as any
 <style scoped>
 .right-content-container {
   flex: 1;
-  background-color: #36393f;
+  background-color: var(--bg-color-secondary);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -53,14 +53,14 @@ const chatContext = inject('chatContext') as any
 
 .welcome-message h2 {
   margin: 0 0 16px 0;
-  color: #fff;
+  color: var(--text-color);
   font-size: 24px;
   font-weight: 600;
 }
 
 .welcome-message p {
   margin: 0;
-  color: #96989d;
+  color: var(--text-color-secondary);
   font-size: 16px;
   line-height: 1.5;
 }

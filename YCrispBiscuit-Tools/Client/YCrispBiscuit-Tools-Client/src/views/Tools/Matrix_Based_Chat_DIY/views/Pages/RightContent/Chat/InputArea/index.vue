@@ -36,15 +36,15 @@ defineEmits<{
 <style scoped>
 .message-input-area {
   padding: 16px;
-  background-color: #36393f;
-  border-top: 1px solid #40444b;
+  background-color: var(--bg-color-secondary);
+  border-top: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
 .message-input {
   display: flex;
   gap: 8px;
-  background-color: #40444b;
+  background-color: var(--bg-color-tertiary, var(--bg-color-secondary));
   border-radius: 8px;
   padding: 12px;
 }
@@ -53,19 +53,19 @@ defineEmits<{
   flex: 1;
   background: transparent;
   border: none;
-  color: #dcddde;
+  color: var(--text-color);
   font-size: 14px;
   outline: none;
 }
 
 .message-input input::placeholder {
-  color: #96989d;
+  color: var(--text-color-secondary);
 }
 
 .send-button {
   padding: 8px 16px;
-  background-color: #5865f2;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--text-color);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -75,11 +75,11 @@ defineEmits<{
 }
 
 .send-button:hover:not(:disabled) {
-  background-color: #4752c4;
+  background-color: var(--color-primary-hover);
 }
 
 .send-button:disabled {
-  background-color: #4f545c;
+  background-color: var(--bg-color-tertiary, var(--bg-color-secondary));
   cursor: not-allowed;
 }
 </style>

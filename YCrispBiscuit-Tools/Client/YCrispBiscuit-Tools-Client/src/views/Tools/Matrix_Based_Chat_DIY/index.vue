@@ -16,8 +16,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import LoginPage from './views/LoginPage/index.vue'
-import MainPage from './views/MainPage/index.vue'
+import LoginPage from './views/LoginPage'
+import MainPage from './views/MainPage'
 import type { MatrixUser } from './types'
 
 // ===== 应用级状态管理 =====

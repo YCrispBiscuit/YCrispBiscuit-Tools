@@ -330,7 +330,7 @@ defineExpose({
   flex-direction: column;
   height: 100%;
   padding: 16px;
-  background: #f8f9fa;
+  background: var(--bg-color);
 }
 
 .notification-header {
@@ -342,7 +342,7 @@ defineExpose({
 
 .notification-header h3 {
   margin: 0;
-  color: #333;
+  color: var(--text-color);
 }
 
 .notification-actions {
@@ -352,14 +352,15 @@ defineExpose({
 
 .notification-actions button {
   padding: 4px 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: white;
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
   cursor: pointer;
 }
 
 .notification-actions button:hover:not(:disabled) {
-  background: #f0f0f0;
+  background: var(--bg-color-hover);
 }
 
 .notification-actions button:disabled {
@@ -371,7 +372,7 @@ defineExpose({
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 8px;
 }
 
@@ -382,20 +383,21 @@ defineExpose({
   background: none;
   cursor: pointer;
   position: relative;
-  color: #666;
+  color: var(--text-color-secondary);
+  background: none;
 }
 
 .notification-filters button.active {
-  background: #007bff;
-  color: white;
+  background: var(--color-primary);
+  color: var(--text-color);
 }
 
 .count-badge {
   position: absolute;
   top: -4px;
   right: -4px;
-  background: #dc3545;
-  color: white;
+  background: var(--color-error);
+  color: var(--text-color);
   border-radius: 50%;
   padding: 2px 6px;
   font-size: 12px;
@@ -407,21 +409,22 @@ defineExpose({
   flex: 1;
   overflow-y: auto;
   margin-bottom: 16px;
+  background: var(--bg-color-secondary);
 }
 
 .notification-item {
   display: flex;
   gap: 12px;
   padding: 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color-secondary);
   border-radius: 8px;
   margin-bottom: 8px;
-  background: white;
 }
 
 .notification-item.unread {
-  border-left: 4px solid #007bff;
-  background: #f8f9ff;
+  border-left: 4px solid var(--color-primary);
+  background: var(--color-primary-bg);
 }
 
 .notification-icon {
@@ -437,17 +440,17 @@ defineExpose({
 .notification-title {
   font-weight: bold;
   margin-bottom: 4px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .notification-message {
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 4px;
 }
 
 .notification-time {
   font-size: 12px;
-  color: #999;
+  color: var(--text-color-tertiary);
 }
 
 .notification-item .notification-actions {
@@ -458,22 +461,29 @@ defineExpose({
 
 .mark-read-btn, .remove-btn {
   padding: 2px 6px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color-secondary);
+  color: var(--text-color);
   border-radius: 3px;
-  background: white;
   cursor: pointer;
   font-size: 12px;
 }
 
 .remove-btn {
-  color: #dc3545;
-  border-color: #dc3545;
+  color: var(--color-error);
+  border-color: var(--color-error);
 }
+
+.mark-read-btn:hover, .remove-btn:hover {
+  background: var(--bg-color-hover);
+}
+
+
 
 .empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: #999;
+  color: var(--text-color-tertiary);
 }
 
 .empty-icon {
@@ -486,13 +496,13 @@ defineExpose({
 }
 
 .notification-settings {
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--border-color);
   padding-top: 16px;
 }
 
 .notification-settings h4 {
   margin: 0 0 12px 0;
-  color: #333;
+  color: var(--text-color);
 }
 
 .setting-item {
@@ -504,7 +514,7 @@ defineExpose({
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .setting-item input[type="checkbox"] {
