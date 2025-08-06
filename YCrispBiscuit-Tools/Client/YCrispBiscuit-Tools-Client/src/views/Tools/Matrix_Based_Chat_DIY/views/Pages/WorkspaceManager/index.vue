@@ -58,7 +58,9 @@ const availableFunctions = ref<PanelFunction[]>([
     description: 'Matrix 聊天功能',
     component: 'Chat',
     category: 'communication'
-  },
+  }
+  /*
+  ,
   
   {
     id: 'file-manager',
@@ -95,6 +97,8 @@ const availableFunctions = ref<PanelFunction[]>([
     component: 'NotificationPanel',
     category: 'system'
   }
+
+  */
 ])
 const savedLayout = ref<GridLayoutItem[] | null>(null)
 const floatingWindows = ref<FloatingWindowType[]>([])

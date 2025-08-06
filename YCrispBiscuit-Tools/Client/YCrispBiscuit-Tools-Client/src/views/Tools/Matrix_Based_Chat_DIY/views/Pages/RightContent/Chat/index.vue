@@ -11,16 +11,14 @@
 
     <!-- 输入区域 -->
     <InputArea 
-      :message="message?.value || ''"
-      :sending="sending?.value || false"
-      @update:message="(value: string) => { if (message) message.value = value }"
-      @send-message="sendMessage"
+      :sending="currentSending"
+      @send-message="handleSendMessage"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, computed } from 'vue'
 import ChatHeader from './ChatHeader/index.vue'
 import MessageArea from './MessageArea/index.vue'
 import InputArea from './InputArea/index.vue'
@@ -36,12 +34,21 @@ if (!chatContext) {
 const {
   currentRoomId,
   roomName,
-  message,
   sending,
   messages,
   currentUserId,
   sendMessage
 } = chatContext || {}
+
+// 创建计算属性确保响应式更新
+const currentSending = computed(() => sending?.value || false)
+
+// 处理发送消息（接收来自InputArea的消息内容）
+const handleSendMessage = async (messageContent: string) => {
+  if (sendMessage) {
+    await sendMessage(messageContent)
+  }
+}
 </script>
 
 <style scoped>

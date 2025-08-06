@@ -81,7 +81,8 @@ const initDefaultLayout = () => {
         }
       ],
       activeTab: 'chat-1'
-    },
+    }/*
+    ,
     {
       i: 'default-tools',
       x: 8,
@@ -97,7 +98,7 @@ const initDefaultLayout = () => {
         }
       ],
       activeTab: 'calendar-1'
-    }
+    }*/
   ]
   
   // 直接设置布局，不使用nextTick（在onMounted中已经有nextTick了）

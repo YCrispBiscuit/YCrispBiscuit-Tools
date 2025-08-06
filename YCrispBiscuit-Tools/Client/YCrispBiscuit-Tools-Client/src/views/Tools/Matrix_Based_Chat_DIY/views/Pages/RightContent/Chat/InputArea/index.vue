@@ -2,15 +2,14 @@
   <div class="message-input-area">
     <div class="message-input">
       <input 
-        :value="message" 
-        @input="$emit('update:message', ($event.target as HTMLInputElement).value)"
-        @keyup.enter="$emit('send-message')" 
+        v-model="localMessage"
+        @keyup.enter="handleSendMessage" 
         placeholder="输入消息..."
         :disabled="sending" 
       />
       <button 
-        @click="$emit('send-message')" 
-        :disabled="!message.trim() || sending"
+        @click="handleSendMessage" 
+        :disabled="!localMessage.trim() || sending"
         class="send-button"
       >
         {{ sending ? '发送中...' : '发送' }}
@@ -20,17 +19,28 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
 interface Props {
-  message: string
   sending: boolean
 }
 
 defineProps<Props>()
 
-defineEmits<{
-  'update:message': [value: string]
-  'send-message': []
+const emit = defineEmits<{
+  'send-message': [message: string]
 }>()
+
+// 本地管理输入状态
+const localMessage = ref('')
+
+const handleSendMessage = () => {
+  if (!localMessage.value.trim()) return
+  
+  // 发送消息并清空输入框
+  emit('send-message', localMessage.value)
+  localMessage.value = ''
+}
 </script>
 
 <style scoped>

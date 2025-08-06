@@ -261,14 +261,21 @@ const handleRefreshRooms = () => {
 }
 
 // 处理发送消息
-const handleSendMessage = async () => {
-    if (!newMessage.value.trim() || !currentRoomId.value) return
+const handleSendMessage = async (messageContent?: string) => {
+    // 如果传入了消息内容，使用传入的；否则使用当前的 newMessage
+    const messageToSend = messageContent || newMessage.value.trim()
+    
+    if (!messageToSend || !currentRoomId.value) return
 
     sending.value = true
     try {
-        await messageService.发送文本消息(currentRoomId.value, newMessage.value)
-        console.log("消息发送成功：", newMessage.value)
-        newMessage.value = ''
+        await messageService.发送文本消息(currentRoomId.value, messageToSend)
+        console.log("消息发送成功：", messageToSend)
+        
+        // 如果使用的是 newMessage，清空它；如果是传入的参数，不需要清空（InputArea会自己清空）
+        if (!messageContent) {
+            newMessage.value = ''
+        }
     } catch (err: any) {
         console.error("发送消息失败：", err)
         alert(err.message || "发送消息失败")
@@ -537,7 +544,7 @@ provide('chatContext', {
 .floating-toggles {
     position: fixed;
     top: 0;
-    left: 0;
+    left: 3.5px;
     width: 100%;
     height: 100%;
     pointer-events: none;
@@ -618,18 +625,18 @@ provide('chatContext', {
 /* 拖拽分隔条样式 */
 .resizer {
     width: 4px;
-    background-color: #40444b;
+    background-color: var(--color-secondary);
     cursor: col-resize;
     position: relative;
     transition: background-color 0.2s ease;
 }
 
 .resizer:hover {
-    background-color: #5865f2;
+    background-color: var(--color-secondary);
 }
 
 .resizer:active {
-    background-color: #4752c4;
+    background-color: var(--color-secondary);
 }
 
 .channels-view,
