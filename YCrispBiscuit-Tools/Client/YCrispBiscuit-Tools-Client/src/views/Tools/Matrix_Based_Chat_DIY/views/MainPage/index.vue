@@ -451,9 +451,9 @@ onMounted(() => {
     }
     window.addEventListener('matrix:needRelogin', handleMatrixRelogin)
 
-    // 添加快捷键测试设备验证弹窗（Ctrl+V）
+    // 添加快捷键测试设备验证弹窗（Ctrl+R）
     const handleKeydown = (event: KeyboardEvent) => {
-        if (event.ctrlKey && event.key === 'v') {
+        if (event.ctrlKey && event.key === 'r') {
             event.preventDefault()
             openDeviceVerification()
         }

@@ -76,73 +76,58 @@ class 消息服务类 {
       const 历史消息列表 = await Promise.all(
         消息事件列表.map(async (消息事件: any) => {
           const 事件类型 = 消息事件.getType()
-          let 是否加密 = false
-          let 消息内容 = ''
-          
-          // 处理加密消息
+
+          // 对加密消息进行解密尝试
           if (事件类型 === 'm.room.encrypted') {
-            是否加密 = true
-            // 尝试获取解密后的内容
             try {
-              // 检查消息是否已经被解密
-              if (消息事件.isDecrypted && 消息事件.isDecrypted()) {
-                // 消息已解密，获取明文内容
-                const 解密内容 = 消息事件.getContent()
-                消息内容 = 解密内容.body || '[已解密但无内容]'
-                console.log(`房间 ${房间ID} 消息已解密:`, 解密内容.body)
-              } else {
-                // 消息未解密，尝试手动解密
-                console.log(`房间 ${房间ID} 消息未解密，尝试手动解密...`)
-                
-                // 获取加密原始内容
-                const 原始内容 = 消息事件.getWireContent()
-                console.log(`房间 ${房间ID} 加密消息原始内容:`, 原始内容)
-                
-                // 尝试通过crypto引擎解密
-                const 客户端加密引擎 = 客户端实例.getCrypto()
-                if (客户端加密引擎) {
-                  try {
-                    // 使用加密引擎解密事件
-                    await 客户端加密引擎.decryptEvent(消息事件)
-                    // 解密成功后重新获取内容
-                    const 解密后内容 = 消息事件.getContent()
-                    消息内容 = 解密后内容.body || '[解密成功但无内容]'
-                    console.log(`房间 ${房间ID} 手动解密成功:`, 解密后内容.body)
-                  } catch (手动解密错误) {
-                    console.log(`房间 ${房间ID} 手动解密失败:`, 手动解密错误)
-                    // 尝试请求密钥
-                    await this.请求缺失密钥(房间ID, 消息事件)
-                    消息内容 = '[加密消息 - 无法解密，已请求密钥]'
-                  }
-                } else {
-                  console.log(`房间 ${房间ID} 加密引擎未初始化，无法解密消息`)
-                  消息内容 = '[加密引擎未初始化 - 无法解密]'
-                }
-              }
-            } catch (解密错误) {
-              console.warn(`房间 ${房间ID} 加密消息处理失败:`, 解密错误)
-              消息内容 = '[无法解密的消息 - 可能缺少密钥]'
+              await 客户端实例.decryptEvent(消息事件)
+            } catch (e) {
+              // 这里捕获错误，以防单个消息解密失败导致整个列表失败
+              console.warn(`事件 ${消息事件.getId()} 解密失败，可能是缺少密钥`, e)
             }
-          } else {
-            // 处理普通消息
-            try {
-              是否加密 = 消息事件.isEncrypted && 消息事件.isEncrypted()
-            } catch (检测错误) {
-              是否加密 = false
-            }
-            消息内容 = 消息事件.getContent().body || '[空消息]'
           }
 
-          // 构造标准化的消息对象
-          return {
+          const 消息明文内容 = 消息事件.getClearContent()
+          const 消息内容 = 消息明文内容 || 消息事件.getContent()
+
+          // --- 调试日志 ---
+          if (消息内容.msgtype === 'm.file' || 消息内容.msgtype === 'm.image') {
+            console.log(`[文件调试] 开始处理事件 ${消息事件.getId()}`);
+            console.log(`[文件调试] 事件类型: ${事件类型}`);
+            console.log(`[文件调试] 解密后的明文内容:`, 消息明文内容);
+            if (消息明文内容) {
+              console.log(`[文件调试] 明文内容中的 .file 对象:`, 消息明文内容.file);
+              console.log(`[文件调试] 明文内容中的 .file.key 对象:`, 消息明文内容.file?.key);
+            }
+          }
+          // --- 调试日志结束 ---
+          
+          // 关键判断：一个文件消息是否被加密，取决于其解密后的内容是否包含加密元数据（如key）
+          const isFileEncrypted = !!(消息明文内容 && 消息明文内容.file && 消息明文内容.file.key);
+
+          const messageData: MatrixMessage = {
             eventId: 消息事件.getId(),
             sender: 消息事件.getSender(),
-            content: 消息内容,
+            content: 消息内容.body || '[无内容]',
             roomId: 房间ID,
             timestamp: 消息事件.getTs(),
-            encrypted: 是否加密,
-            messageType: this.获取消息类型(消息事件.getContent())
+            encrypted: isFileEncrypted || (事件类型 === 'm.room.encrypted'), // 更可靠的加密状态判断
+            messageType: this.获取消息类型(消息内容),
+            messageInfo: this.解析消息信息(消息事件) // 始终解析 messageInfo
           }
+          
+          // 关键步骤：为加密文件附加解密元数据
+          // 新的、更可靠的逻辑：只要判断为加密文件，就附加信息
+          if (isFileEncrypted) {
+            // 确保 messageInfo 对象存在
+            if (!messageData.messageInfo) {
+              messageData.messageInfo = {}
+            }
+            console.log(`[文件调试] 成功为事件 ${消息事件.getId()} 附加 encryptionInfo (新逻辑)`);
+            messageData.messageInfo.encryptionInfo = 消息明文内容.file
+          }
+          
+          return messageData
         })
       )
 
@@ -174,6 +159,53 @@ class 消息服务类 {
       case 'm.video': return 'm.video'   // 视频消息
       default: return 'm.text'           // 默认文本消息
     }
+  }
+
+  /**
+   * 解析消息的额外信息
+   * @param 消息事件 - Matrix消息事件
+   * @returns 消息额外信息对象
+   */
+  private 解析消息信息(消息事件: any): MatrixMessage['messageInfo'] {
+    const 消息内容 = 消息事件.getClearContent() || 消息事件.getContent();
+    const 消息类型 = 消息内容.msgtype;
+    const 消息信息: any = {};
+    const client = matrixClient.getAuthedClient();
+
+    // 对于加密文件，URL位于'file'对象内；对于未加密文件，URL在顶层。
+    // 统一获取 mxcUrl
+    const mxcUrl = 消息内容?.file?.url || 消息内容.url;
+
+    switch (消息类型) {
+      case 'm.image':
+        if (消息内容.info) {
+          消息信息.width = 消息内容.info.w;
+          消息信息.height = 消息内容.info.h;
+          消息信息.size = 消息内容.info.size;
+          消息信息.mimetype = 消息内容.info.mimetype;
+        }
+        if (mxcUrl && client) {
+          消息信息.url = client.mxcUrlToHttp(mxcUrl);
+          消息信息.mxcUrl = mxcUrl;
+        }
+        break;
+      case 'm.file':
+      case 'm.audio':
+      case 'm.video':
+        消息信息.filename = 消息内容.body;
+        if (消息内容.info) {
+          消息信息.size = 消息内容.info.size;
+          消息信息.mimetype = 消息内容.info.mimetype;
+        }
+        // 同时处理加密（从 file 对象）和非加密（直接从 content）的 URL
+        if (mxcUrl && client) {
+          消息信息.url = client.mxcUrlToHttp(mxcUrl);
+          消息信息.mxcUrl = mxcUrl;
+        }
+        break;
+    }
+
+    return Object.keys(消息信息).length > 0 ? 消息信息 : undefined;
   }
 
   /**

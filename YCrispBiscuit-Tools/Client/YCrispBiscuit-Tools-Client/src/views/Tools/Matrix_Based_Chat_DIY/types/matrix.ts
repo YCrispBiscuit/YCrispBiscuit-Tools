@@ -101,6 +101,28 @@ export interface MatrixMessage {
   
   /** 消息类型（可选），区分文本、图片、文件等不同类型的消息 */
   messageType?: 'm.text' | 'm.image' | 'm.file' | 'm.audio' | 'm.video'
+  
+  /** 消息额外信息（可选），用于存储文件信息、图片信息等 */
+  messageInfo?: {
+    /** 文件/图片URL */
+    url?: string
+    /** 文件名 */
+    filename?: string
+    /** 文件大小（字节） */
+    size?: number
+    /** MIME类型 */
+    mimetype?: string
+    /** 图片替代文本 */
+    alt?: string
+    /** 缩略图URL */
+    thumbnail_url?: string
+    /** 宽度 */
+    width?: number
+    /** 高度 */
+    height?: number
+    /** 其他自定义属性 */
+    [key: string]: any
+  }
 }
 
 /**
