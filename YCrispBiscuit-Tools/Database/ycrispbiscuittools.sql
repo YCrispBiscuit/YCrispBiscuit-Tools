@@ -11,7 +11,7 @@
  Target Server Version : 80042 (8.0.42)
  File Encoding         : 65001
 
- Date: 14/07/2025 15:00:37
+ Date: 11/09/2025 18:14:32
 */
 
 SET NAMES utf8mb4;
@@ -32,10 +32,10 @@ CREATE TABLE `acgn_personal_preference_table_generator`  (
 -- ----------------------------
 -- Records of acgn_personal_preference_table_generator
 -- ----------------------------
-INSERT INTO `acgn_personal_preference_table_generator` VALUES (1, 'Genshin Impact', '[\"最喜欢的\", \"最讨厌的\", \"最常用的\", \"最想抽到的\", \"最冷门的\", \"最强的\", \"最弱的\", \"最可爱的\", \"最帅的\", \"最治愈的\", \"最高冷的\", \"最热情的\", \"最风雅的\", \"想看ta性转\", \"想变成ta的\"]', 113);
-INSERT INTO `acgn_personal_preference_table_generator` VALUES (2, 'Honkai: Star Rail', '[\"最喜欢的\", \"最讨厌的\", \"最常用的\", \"最想抽到的\", \"最冷门的\", \"最强的\", \"最弱的\", \"最可爱的\", \"最帅的\", \"最治愈的\", \"最高冷的\", \"最热情的\", \"最风雅的\", \"想看ta性转\", \"想变成ta的\"]', 80);
-INSERT INTO `acgn_personal_preference_table_generator` VALUES (3, 'ZenlessZoneZero', '[\"最喜欢的\", \"最讨厌的\", \"最常用的\", \"最想抽到的\", \"最冷门的\", \"最强的\", \"最弱的\", \"最可爱的\", \"最帅的\", \"最治愈的\", \"最高冷的\", \"最热情的\", \"最风雅的\", \"想看ta性转\", \"想变成ta的\"]', 38);
-INSERT INTO `acgn_personal_preference_table_generator` VALUES (4, 'Wuthering Waves', '[\"最喜欢的\", \"最讨厌的\", \"最常用的\", \"最想抽到的\", \"最冷门的\", \"最强的\", \"最弱的\", \"最可爱的\", \"最帅的\", \"最治愈的\", \"最高冷的\", \"最热情的\", \"最风雅的\", \"想看ta性转\", \"想变成ta的\"]', 40);
+INSERT INTO `acgn_personal_preference_table_generator` VALUES (1, 'Genshin Impact', '[\"最喜欢的\", \"最讨厌的\", \"最常用的\", \"最想抽到的\", \"最冷门的\", \"最强的\", \"最弱的\", \"最可爱的\", \"最帅的\", \"最治愈的\", \"最高冷的\", \"最热情的\", \"最风雅的\", \"想看ta性转\", \"想变成ta的\"]', 116);
+INSERT INTO `acgn_personal_preference_table_generator` VALUES (2, 'Honkai: Star Rail', '[\"最喜欢的\", \"最讨厌的\", \"最常用的\", \"最想抽到的\", \"最冷门的\", \"最强的\", \"最弱的\", \"最可爱的\", \"最帅的\", \"最治愈的\", \"最高冷的\", \"最热情的\", \"最风雅的\", \"想看ta性转\", \"想变成ta的\"]', 83);
+INSERT INTO `acgn_personal_preference_table_generator` VALUES (3, 'ZenlessZoneZero', '[\"最喜欢的\", \"最讨厌的\", \"最常用的\", \"最想抽到的\", \"最冷门的\", \"最强的\", \"最弱的\", \"最可爱的\", \"最帅的\", \"最治愈的\", \"最高冷的\", \"最热情的\", \"最风雅的\", \"想看ta性转\", \"想变成ta的\"]', 43);
+INSERT INTO `acgn_personal_preference_table_generator` VALUES (4, 'Wuthering Waves', '[\"最喜欢的\", \"最讨厌的\", \"最常用的\", \"最想抽到的\", \"最冷门的\", \"最强的\", \"最弱的\", \"最可爱的\", \"最帅的\", \"最治愈的\", \"最高冷的\", \"最热情的\", \"最风雅的\", \"想看ta性转\", \"想变成ta的\"]', 44);
 
 -- ----------------------------
 -- Table structure for data_source_acgn_personal_preference_table_generator
@@ -50,7 +50,7 @@ CREATE TABLE `data_source_acgn_personal_preference_table_generator`  (
   PRIMARY KEY (`Data_Source_ACGN_Personal_Preference_Table_Generator_ID`) USING BTREE,
   INDEX `key1`(`ACGN_Personal_Preference_Table_Generator_ID` ASC) USING BTREE,
   CONSTRAINT `key1` FOREIGN KEY (`ACGN_Personal_Preference_Table_Generator_ID`) REFERENCES `acgn_personal_preference_table_generator` (`ACGN_Personal_Preference_Table_Generator_ID`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 848 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 863 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of data_source_acgn_personal_preference_table_generator
@@ -95,7 +95,7 @@ INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (613, 
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (614, 4, 'resources/ACGN_Personal_Preference_Table_Generator/WutheringWaves/11816.png', '莫特斐', 11816);
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (615, 4, 'resources/ACGN_Personal_Preference_Table_Generator/WutheringWaves/11656.png', '渊武', 11656);
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (616, 4, 'resources/ACGN_Personal_Preference_Table_Generator/WutheringWaves/11710.png', '桃祈', 11710);
-INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (617, 1, 'resources/ACGN_Personal_Preference_Table_Generator/GenshinImpact/505631.png', '伊涅芙【预告】', 505631);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (617, 1, 'resources/ACGN_Personal_Preference_Table_Generator/GenshinImpact/505631.png', '伊涅芙', 505631);
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (618, 1, 'resources/ACGN_Personal_Preference_Table_Generator/GenshinImpact/503613.png', '玛薇卡', 503613);
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (619, 1, 'resources/ACGN_Personal_Preference_Table_Generator/GenshinImpact/501441.png', '艾梅莉埃', 501441);
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (620, 1, 'resources/ACGN_Personal_Preference_Table_Generator/GenshinImpact/504621.png', '伊安珊', 504621);
@@ -326,6 +326,21 @@ INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (844, 
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (845, 3, 'resources/ACGN_Personal_Preference_Table_Generator/ZenlessZoneZero/379.png', '安比·德玛拉', 379);
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (846, 3, 'resources/ACGN_Personal_Preference_Table_Generator/ZenlessZoneZero/179.png', '可琳·威克斯', 179);
 INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (847, 3, 'resources/ACGN_Personal_Preference_Table_Generator/ZenlessZoneZero/147.png', '安东·伊万诺夫', 147);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (848, 1, 'resources/ACGN_Personal_Preference_Table_Generator/GenshinImpact/505971.png', '菲林斯【预告】', 505971);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (849, 1, 'resources/ACGN_Personal_Preference_Table_Generator/GenshinImpact/505973.png', '菈乌玛', 505973);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (850, 1, 'resources/ACGN_Personal_Preference_Table_Generator/GenshinImpact/505972.png', '爱诺', 505972);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (851, 2, 'resources/ACGN_Personal_Preference_Table_Generator/HonkaiStarRail/5851.png', '昔涟', 5851);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (852, 2, 'resources/ACGN_Personal_Preference_Table_Generator/HonkaiStarRail/5737.png', '丹恒•腾荒', 5737);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (853, 2, 'resources/ACGN_Personal_Preference_Table_Generator/HonkaiStarRail/5736.png', '长夜月', 5736);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (854, 3, 'resources/ACGN_Personal_Preference_Table_Generator/ZenlessZoneZero/1499.png', '「席德」', 1499);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (855, 3, 'resources/ACGN_Personal_Preference_Table_Generator/ZenlessZoneZero/1501.png', '奥菲丝·马格努森&「鬼火」', 1501);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (856, 3, 'resources/ACGN_Personal_Preference_Table_Generator/ZenlessZoneZero/1538.png', '伊德海莉', 1538);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (857, 3, 'resources/ACGN_Personal_Preference_Table_Generator/ZenlessZoneZero/1536.png', '狛野真斗', 1536);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (858, 3, 'resources/ACGN_Personal_Preference_Table_Generator/ZenlessZoneZero/1533.png', '卢西娅', 1533);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (859, 4, 'resources/ACGN_Personal_Preference_Table_Generator/WutheringWaves/17536.png', '奥古斯塔', 17536);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (860, 4, 'resources/ACGN_Personal_Preference_Table_Generator/WutheringWaves/17823.png', '嘉贝莉娜', 17823);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (861, 4, 'resources/ACGN_Personal_Preference_Table_Generator/WutheringWaves/17824.png', '仇远', 17824);
+INSERT INTO `data_source_acgn_personal_preference_table_generator` VALUES (862, 4, 'resources/ACGN_Personal_Preference_Table_Generator/WutheringWaves/17535.png', '尤诺', 17535);
 
 -- ----------------------------
 -- Table structure for user
@@ -340,28 +355,11 @@ CREATE TABLE `user`  (
   `CreateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `LastUpDateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
   PRIMARY KEY (`UserID`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of user
 -- ----------------------------
-
--- ----------------------------
--- Triggers structure for table data_source_acgn_personal_preference_table_generator
--- ----------------------------
-DROP TRIGGER IF EXISTS `Update_Number_After_Delete`;
-delimiter ;;
-CREATE TRIGGER `Update_Number_After_Delete` AFTER DELETE ON `data_source_acgn_personal_preference_table_generator` FOR EACH ROW BEGIN
-  UPDATE acgn_personal_preference_table_generator
-  SET Data_Source_Number = (
-    SELECT COUNT(*)
-    FROM data_source_acgn_personal_preference_table_generator
-    WHERE ACGN_Personal_Preference_Table_Generator_ID = OLD.ACGN_Personal_Preference_Table_Generator_ID
-  )
-  WHERE ACGN_Personal_Preference_Table_Generator_ID = OLD.ACGN_Personal_Preference_Table_Generator_ID;
-END
-;;
-delimiter ;
 
 -- ----------------------------
 -- Triggers structure for table data_source_acgn_personal_preference_table_generator
@@ -376,6 +374,23 @@ CREATE TRIGGER `Update_Number_After_Insert` AFTER INSERT ON `data_source_acgn_pe
     WHERE ACGN_Personal_Preference_Table_Generator_ID = NEW.ACGN_Personal_Preference_Table_Generator_ID
   )
   WHERE ACGN_Personal_Preference_Table_Generator_ID = NEW.ACGN_Personal_Preference_Table_Generator_ID;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Triggers structure for table data_source_acgn_personal_preference_table_generator
+-- ----------------------------
+DROP TRIGGER IF EXISTS `Update_Number_After_Delete`;
+delimiter ;;
+CREATE TRIGGER `Update_Number_After_Delete` AFTER DELETE ON `data_source_acgn_personal_preference_table_generator` FOR EACH ROW BEGIN
+  UPDATE acgn_personal_preference_table_generator
+  SET Data_Source_Number = (
+    SELECT COUNT(*)
+    FROM data_source_acgn_personal_preference_table_generator
+    WHERE ACGN_Personal_Preference_Table_Generator_ID = OLD.ACGN_Personal_Preference_Table_Generator_ID
+  )
+  WHERE ACGN_Personal_Preference_Table_Generator_ID = OLD.ACGN_Personal_Preference_Table_Generator_ID;
 END
 ;;
 delimiter ;
