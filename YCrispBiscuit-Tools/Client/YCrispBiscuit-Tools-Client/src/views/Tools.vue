@@ -49,22 +49,7 @@ const tools = [
       router.push('/Tools/ACGN_Personal_Preference_Table_Generator');
     }
   },
-  {
-    name: 'Agent_DIY',
-    desc: '这是一个可视化的Agent DIY工具，仅作demo展示，因为本人暂未实现完整的Agent开发流程。未进行主题切换适配。',
-    logo: new URL('@/assets/Agent_DIY.png', import.meta.url).href,
-    action: () => {
-      router.push('/Tools/Agent_DIY');
-    }
-  },
-  {
-    name: 'Matrix_Based_Chat_DIY',
-    desc: '下一个暂定目标，开发一套基于Matrix的即时通讯工具。需要主题切换适配。',
-    //logo: new URL('@/assets/bilibili_black_00000.svg', import.meta.url).href,
-    action: () => {
-      router.push('/Tools/Matrix_Based_Chat_DIY');
-    }
-  },
+  
   {
     name: '示例工具',
     desc: '支持自适应布局和主题切换。',

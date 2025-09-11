@@ -40,36 +40,6 @@ const routes = [
     name: 'ACGN_Personal_Preference_Table_Generator',
     component: () => import('../views/Tools/ACGN_Personal_Preference_Table_Generator'),
     meta: { requiresAuth: false }
-  },
-  {
-    path: '/Tools/Agent_DIY',
-    name: 'Agent_DIY_Index',
-    component: () => import('../views/Tools/Agent_DIY'),
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/Tools/Agent_DIY/:applicationId',
-    name: 'Agent_DIY',
-    component: () => import('../views/Tools/Agent_DIY'),
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/AgentNode/:applicationId',
-    name: 'Agent_Node',
-    component: () => import('../views/Tools/AgentNode/AgentNode.vue'),
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/Tools/Matrix_Based_Chat_DIY',
-    name: 'Matrix_Based_Chat_DIY',
-    component: () => import('../views/Tools/Matrix_Based_Chat_DIY'),
-    meta: { requiresAuth: false }
-  },
-  {
-    path: '/matrix-chat-detached',
-    name: 'MatrixChatDetached',
-    component: () => import('../views/Tools/Matrix_Based_Chat_DIY/views/Pages/DetachedWindow.vue'),
-    meta: { requiresAuth: false }
   }
 
 ]

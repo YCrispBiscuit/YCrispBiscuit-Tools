@@ -138,7 +138,7 @@ const renderHeadingsHrBoldQuoteTask = (md: string) => {
     // 渲染并为标题加 id
     let html = headingParser.render(filteredLines.join('\n'));
     // 为 h1~h6 加 id，id 生成规则与 toc 保持一致
-    html = html.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/g, (m, level, text) => {
+    html = html.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/g, (_m, level, text) => {
         // 提取纯文本
         const plain = text.replace(/<[^>]+>/g, '').trim();
         const id = plain.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '');
