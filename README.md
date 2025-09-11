@@ -106,8 +106,7 @@ YCrispBiscuit-Tools/
 ### 🎯 已计划功能
 
 - [ ] **ACGN个人喜好表生成器**
-- [ ] **Agent_DIY - 基于AutoGen的数据json实现的可视化Agent团队编辑器**
-- [ ] **Matrix_Based_Chat_DIY - 基于Matrix核心的在线通信办公平台**
+- [ ] **BackgroundForClient 前端风格化背景**
 
 - [ ] **个人文档展示 - 本地化MD文件速览**
 
