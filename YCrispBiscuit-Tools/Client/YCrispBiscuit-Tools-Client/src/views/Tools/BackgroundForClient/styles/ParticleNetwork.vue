@@ -126,6 +126,5 @@ onUnmounted(() => {
 
 .background-canvas {
   display: block;
-  background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
 }
 </style>

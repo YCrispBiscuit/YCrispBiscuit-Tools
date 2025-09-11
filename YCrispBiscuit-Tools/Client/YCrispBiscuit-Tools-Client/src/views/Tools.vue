@@ -43,16 +43,16 @@ const router = useRouter();
 const tools = [
   {
     name: 'ACGN个人喜好表生成器',
-    desc: '这是一个为动漫游戏爱好者打造的个人喜好表生成器，可自定义数据库，支持图表下载。未进行主题切换适配。',
+    desc: '这是一个为动漫游戏爱好者打造的个人喜好表生成器，可自定义数据库，支持图表下载。',
     logo: new URL('@/assets/bilibili_blue.png', import.meta.url).href,
     action: () => {
       router.push('/Tools/ACGN_Personal_Preference_Table_Generator');
     }
   },
-  
   {
     name: '几何背景',
-    desc: '学习一下前端背景。',
+    desc: '一些前端背景。',
+    logo: new URL('@/assets/background.png', import.meta.url).href,
     action: () => {
       router.push('/Tools/BackgroundForClient');
     }
