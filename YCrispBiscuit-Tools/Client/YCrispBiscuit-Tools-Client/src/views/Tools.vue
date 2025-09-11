@@ -51,10 +51,10 @@ const tools = [
   },
   
   {
-    name: '示例工具',
-    desc: '支持自适应布局和主题切换。',
+    name: '几何背景',
+    desc: '学习一下前端背景。',
     action: () => {
-
+      router.push('/Tools/BackgroundForClient');
     }
   },
   {

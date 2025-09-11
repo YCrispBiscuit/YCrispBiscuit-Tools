@@ -40,6 +40,12 @@ const routes = [
     name: 'ACGN_Personal_Preference_Table_Generator',
     component: () => import('../views/Tools/ACGN_Personal_Preference_Table_Generator'),
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/Tools/BackgroundForClient',
+    name: 'BackgroundForClient',
+    component: () => import('../views/Tools/BackgroundForClient'),
+    meta: { requiresAuth: false }
   }
 
 ]
