@@ -12,7 +12,7 @@ export const useAppStore = defineStore('app', () => {
 
   // 主题模式
   const theme = ref<ThemeMode>(
-    (localStorage.getItem('theme') as ThemeMode) || 'system'
+    (localStorage.getItem('theme') as ThemeMode) || 'light'
   )
   const isDark = ref(false)
 

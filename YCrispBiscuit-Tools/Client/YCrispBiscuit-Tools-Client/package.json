@@ -3,13 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "main.js",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron": "set NODE_ENV=production&& electron .",
+    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && set NODE_ENV=development&& electron .\""
   },
   "dependencies": {
-    "@matrix-org/matrix-sdk-crypto-wasm": "^15.1.0",
     "@vicons/fa": "^0.13.0",
     "@vicons/ionicons5": "^0.13.0",
     "@vue-flow/core": "^1.45.0",
@@ -19,7 +21,6 @@
     "dayjs": "^1.11.13",
     "html2canvas": "^1.4.1",
     "markdown-it": "^14.1.0",
-    "matrix-js-sdk": "^37.11.0",
     "naive-ui": "^2.41.1",
     "paper": "^0.12.18",
     "pinia": "^3.0.3",
@@ -34,9 +35,12 @@
     "@types/node": "^24.0.1",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/tsconfig": "^0.7.0",
+    "concurrently": "^9.2.1",
+    "electron": "^38.1.0",
     "sass-embedded": "^1.89.2",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
-    "vue-tsc": "^2.2.8"
+    "vue-tsc": "^2.2.8",
+    "wait-on": "^8.0.4"
   }
 }

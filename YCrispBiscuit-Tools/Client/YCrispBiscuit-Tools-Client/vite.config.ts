@@ -16,11 +16,12 @@ export default defineConfig({
       }
     }
   ],
-  //base: '/YCrispBiscuit-Tools/',
+  base: './', // 使用相对路径，这样在Electron中可以正确工作
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) }
   },
   server: {
+    port: 3000,
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
