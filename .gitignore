@@ -1,4 +1,5 @@
 # ===== 永远不提交的文件 =====
+
 # 依赖目录
 node_modules/
 .gradle/
@@ -6,15 +7,20 @@ node_modules/
 
 # 构建产物
 dist/
+dist-ssr/
 target/
 build/
 *.jar
 *.war
 
 # 日志和缓存
-npm-debug.log
-yarn-error.log
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 .cache/
 .temp/
 .vite/
@@ -23,39 +29,48 @@ yarn-error.log
 .DS_Store
 Thumbs.db
 
-# 敏感数据
-.env
-.env.local
-.env*.local
-
-# ===== 可选提交的文件（按需取消注释） =====
-# !.env.example          # 提交环境变量模板
-# !.idea/codeStyles/     # 提交团队代码风格
-# !.idea/runConfigurations/ # 提交共享运行配置
 
 
 
 
 
 # ===== Python & FastAPI Backend =====
-# 虚拟环境 (Virtual Environment)
-# 包含所有Python包，应在每台机器上根据 requirements.txt 重新创建
+# 虚拟环境 (Virtual Environment) - 请使用 requirements.txt/pyproject.toml 安装依赖
 venv/
 env/
 .venv/
 
-# Python 缓存文件
+# Python 缓存 & 测试产物
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Python 打包和分发产物
+# Python 打包产物
 *.egg-info/
 sdist/
 *.spec
 
-# 测试产物
-.pytest_cache/
-.coverage
-htmlcov/
+
+
+
+
+
+
+
+
+
+
+# 本地与日志
+*.local
+
+# Editor directories and files
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
